@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "profile_kind": "dev_local",
+  "required_secrets": [
+    {
+      "scope": "github_core",
+      "key": "collector",
+      "kind": "github",
+      "note": "The combined `github` envelope (github_core >= v0.5.0, req-github-core-app-auth): an `app` block — a READ-ONLY GitHub App installed on the observed account (`data.owner`), minted with github_core's create-github-app skill — and/or a `pat` block — a fine-grained READ-ONLY PAT whose resource owner is the observed account, minted by hand in GitHub's UI — routed per collection source, never by preference order. Legacy `github_pat` / `github_app` envelopes still fold on read. Permissions are the union of what github_core's collection manifest declares per source; its App-permission ledger (github_app_permissions.json) is the authoritative list, and packages stay unobservable under an App credential until GitHub enables that surface for Apps."
+    }
+  ],
+  "description": "git-serious double-tap — the unified-systems-com INSTANCE composition: git-serious (the product, plan/product-map.md) plus the double-tap plugin that holds only what is specific to observing the organization that builds TAP. Installs the product's closure exactly as git-serious's own record does (identity_core, github_core, administrivia at the same immutable tags; git_serious from its repo), then the instance plugin; seeds the product's pages, then the instance's; fires the github_core collector against unified-systems-com. The landing page is decided HERE, by the operator, per req-web-page-landing: web pins the /double-tap page by entity id with its slug as a verified assertion — git-serious alone lands on /git-serious, this composition lands on /double-tap. DEV-PHASE record: git_serious and git_serious_double_tap pin branches until each has a tagged release (req-boot-bootstrap-stage0-3); the first tagged release replaces them and drops the marker.",
+  "install": {
+    "plugins": [
+      {
+        "slug": "administrivia",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/tap-plugin-administrivia",
+          "rev": "v0.1.0"
+        },
+        "note": "Package-mode (tap_plugin.administrivia). TAP admin pages + grid landing; seeded in population."
+      },
+      {
+        "slug": "identity_core",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/tap-plugin-identity-core",
+          "rev": "v0.1.1"
+        },
+        "note": "Package-mode (tap_plugin.identity_core). Install-only substrate: the oidc_issuer convergence node github_core mints. No GRIFT seed."
+      },
+      {
+        "slug": "github_core",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
+          "rev": "v0.5.0"
+        },
+        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary + collector, account-scoped (req-github-core-org-scope), pinned at v0.5.0; NOT seeded here — its repo landing page is samsite-shaped (/samsite/repo) and git-serious owns its own pages."
+      },
+      {
+        "slug": "git_serious",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/git-serious-tap",
+          "rev": "main"
+        },
+        "note": "Package-mode (tap_plugin.git_serious). The product this instance layers on. DEV-PHASE: a branch rev until git-serious tags a release; then the tag."
+      },
+      {
+        "slug": "git_serious_double_tap",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/git-serious-double-tap",
+          "rev": "main"
+        },
+        "note": "Package-mode (tap_plugin.git_serious_double_tap). The instance plugin: pages composing git-serious's panels for unified-systems-com. Self-reference (req-boot-bootstrap-stage0-3): the carrier this record ships in and the version it installs are independent coordinates. DEV-PHASE: `main`, because a record cannot pin its own unreleased tag and a feature branch is deleted at merge. Listed after git_serious: its pages mount git_serious's panels by entity id."
+      }
+    ]
+  },
+  "population": {
+    "on_failure": "abort",
+    "steps": [
+      {
+        "type": "seed-plugin",
+        "plugin": "administrivia",
+        "enabled": true,
+        "note": "TAP admin pages + grid landing."
+      },
+      {
+        "type": "seed-plugin",
+        "plugin": "git_serious",
+        "enabled": true,
+        "note": "git-serious landing page: the account's CI/CD system as a graph."
+      },
+      {
+        "type": "seed-plugin",
+        "plugin": "git_serious_double_tap",
+        "enabled": true,
+        "note": "The instance's pages. MUST follow git_serious's seed: its USES_PANEL edges target panels git_serious seeds, and the importer only warns on a dangling endpoint."
+      },
+      {
+        "type": "fire-collector",
+        "key": "github_core:github_core",
+        "enabled": true,
+        "secrets": [
+          "github_core:collector"
+        ],
+        "timeout_seconds": 600,
+        "note": "Pulls the configured scope onto the grid: the account's repositories, workflows, runs, jobs, runners, apps. Fires against whatever github_pat envelope is placed — until the account-scoped PAT lands this is the shared repos-only credential, which makes the first boot an end-to-end smoke test of the collector path rather than the org picture."
+      }
+    ]
+  },
+  "web": {
+    "landing_entity_id": "01a081d1-f90f-76ff-b882-491af67b9d4b",
+    "landing_slug": "/double-tap"
+  }
+}

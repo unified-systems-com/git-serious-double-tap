@@ -15,3 +15,12 @@ status = "compatible"
 
 [grift]
 home = "grift/home.grift.json"
+
+# In-package boot record (req-boot-bootstrap-records-in-package): the unified-systems-com
+# instance composition — git-serious plus this plugin, landing on /double-tap. Digest is the
+# canonical sha256 of the record; regenerate with scripts/boot-record-hash --refresh in a core
+# checkout (the shipped record test asserts it); never hand-edit.
+[[boot.records]]
+name = "git_serious_double_tap"
+description = "unified-systems-com instance of git-serious: the product's closure + the double-tap plugin, seeded in order, collector fired against the org, landing page pinned to /double-tap (web.landing_entity_id + web.landing_slug)."
+sha256 = "3ad125279d230ced91c2f8a100ba0305b4b917f45a752462d89199b1aaf87c29"

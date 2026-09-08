@@ -30,6 +30,18 @@ must be installed and seeded before this plugin (boot-profile order).
 - `tap_plugin/git_serious_double_tap/grift/home.grift.json` — the home page bundle.
 - Core: `tap_plugins/specs/spec-tap-plugin-architecture.md`, `tap_grid/specs/spec-grift-v0.md`.
 
+## The composition record
+
+`tap_plugin/git_serious_double_tap/boot/git_serious_double_tap.boot.json` is the reproducible
+instance profile: git-serious's closure at the same pins, then this plugin; seeds in that order;
+fires the github_core collector against unified-systems-com; and **decides the landing page** —
+`web.landing_entity_id` + `web.landing_slug` pin `/double-tap` by entity id (core
+`req-web-page-landing`). Boot it from a core checkout with
+`scripts/spawn-session.sh <label> --from <pointer>` (see `spec-tap-boot-bootstrap.md`). It needs a
+core that carries the `web` section (tap#340); on an older core the record fails schema
+validation, which is the right loud failure. No credential, path or local override is committed:
+the `github_core:collector` secret is declared, never embedded.
+
 ## Install and validate
 
 Add to a git-serious boot profile, after git_serious in both sections:
