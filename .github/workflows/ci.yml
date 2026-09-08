@@ -1,0 +1,20 @@
+# CI for git-serious-double-tap — a thin caller of the reusable plugin admission gate in the
+# core TAP repo (.github/workflows/plugin-ci.yml, req-plugin-extdev-repo-ci). Conformance leg
+# only for now: this plugin ships no boot record of its own; it rides git-serious's.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tap:
+    uses: unified-systems-com/tap/.github/workflows/plugin-ci.yml@main
+    with:
+      plugin_slug: git_serious_double_tap
+      harness_ref: main

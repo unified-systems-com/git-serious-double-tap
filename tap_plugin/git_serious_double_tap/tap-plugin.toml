@@ -1,0 +1,17 @@
+manifest_version = "0"
+plugin_version = "0.1.0"
+slug = "git_serious_double_tap"
+name = "git-serious double-tap"
+description = "The unified-systems-com instance configuration for git-serious: the pages and panels specific to observing the organization that builds TAP. A double-tap plugin — one that introspects the TAP system itself."
+
+# No code-import dependencies: the pages here mount git_serious's panels by entity id in GRIFT
+# edges. That is an INSTALL + SEED-ORDER dependency (pyproject `dependencies`; boot-profile
+# population order), not an import-time edge. See pyproject.toml.
+depends_on = []
+
+# Pure configuration — no crypto, no native deps (spec-fips.md, req-tap-plugin-manifest-v0-fips).
+[fips]
+status = "compatible"
+
+[grift]
+home = "grift/home.grift.json"

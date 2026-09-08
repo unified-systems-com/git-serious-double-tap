@@ -1,0 +1,123 @@
+{
+  "metadata": {
+    "grift_version": "0"
+  },
+  "_reserved": {},
+  "batches": [
+    {
+      "batch_entity": {
+        "entity_id": "01a081d1-f90f-76ff-b882-4919aff2d22d",
+        "entity_type": "batch",
+        "name": "git-serious double-tap home v0.1.0",
+        "dimensions": {}
+      },
+      "batch_node": {
+        "source": "tap_plugin.git_serious_double_tap.grift.home",
+        "name": "git-serious double-tap home v0.1.0",
+        "description": "First light of the double-tap: /double-tap mounts three git-serious panels (status wall, not-observed, gates) by USES_PANEL edge. The panel targets are entity ids git_serious seeds, so git_serious must be seeded before this bundle (boot-profile population order; the importer resolves an out-of-file endpoint against the live grid and warns on a dangling one). No nodes beyond the page itself."
+      },
+      "nodes": [
+        {
+          "entity": {
+            "entity_id": "01a081d1-f90f-76ff-b882-491af67b9d4b",
+            "entity_type": "page",
+            "name": "double-tap",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "double-tap",
+            "slug": "/double-tap",
+            "nav_weight": 110,
+            "description": "unified-systems-com through git-serious: the pages the organization that builds TAP lives in to run its own CI/CD. v0.1.0 (req-git-serious-double-tap-page-home): three of git-serious's standard panels mounted by USES_PANEL edge \u2014 the status wall, the not-observed workflows, and the gates \u2014 with no panel, search or code of its own. The point of v0 is the composition: an instance-specific page reuses product panels by edge alone. The pages target 3 (map unified-systems) needs land here as they are found, and anything repeatable moves down into git_serious or github_core.",
+            "layout": {
+              "full_bleed": true,
+              "columns": {
+                "col-1": {
+                  "width": "1fr",
+                  "rows": {
+                    "row-1": {
+                      "panel-id": "status-wall",
+                      "height": "auto"
+                    },
+                    "row-2": {
+                      "panel-id": "not-observed",
+                      "height": "auto"
+                    },
+                    "row-3": {
+                      "panel-id": "gates",
+                      "height": "auto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "entity": {
+            "entity_id": "01a081d1-f90f-76ff-b882-491bd752cff0",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL status-wall (git_serious)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a081d1-f90f-76ff-b882-491af67b9d4b",
+            "to_entity_id": "01a0632f-38b6-7440-9de9-3d5a3dadeb2a",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "status-wall"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a081d1-f90f-76ff-b882-491cb272be8c",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL not-observed (git_serious)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a081d1-f90f-76ff-b882-491af67b9d4b",
+            "to_entity_id": "01a0632f-38b6-7440-9de9-3d5ba8eadfc4",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "not-observed"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a081d1-f90f-76ff-b882-491d7340511e",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL gates (git_serious)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a081d1-f90f-76ff-b882-491af67b9d4b",
+            "to_entity_id": "01a067e1-8266-71e1-bb86-fba4947ee6a2",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "gates"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

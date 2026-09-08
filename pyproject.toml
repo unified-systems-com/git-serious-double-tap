@@ -1,0 +1,48 @@
+# git-serious-double-tap — a "double-tap" plugin: one built to introspect the TAP system and
+# platform itself. This one points git-serious at unified-systems-com, the organization that
+# builds TAP, and holds ONLY what is specific to that instance: which pages and panels we need
+# to work a running example. Anything repeatable lands in git_serious or github_core instead.
+#
+# Identity chain (req-tap-plugin-arch-identity, gate-enforced; <slug>-tap since 2026-08-26):
+#   slug             = "git_serious_double_tap"
+#   distribution     = "git-serious-double-tap-tap"        (PEP 503: slug `_`->`-`, `-tap` suffix)
+#   import namespace = "tap_plugin.git_serious_double_tap" (PEP 420; NO tap_plugin/__init__.py)
+#   entry-point key  = "git_serious_double_tap"            (== slug)
+[project]
+name = "git-serious-double-tap-tap"
+description = "git-serious double-tap — the unified-systems-com instance configuration for git-serious: the pages and panels specific to observing the organization that builds TAP."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.14"
+dynamic = ["version"]
+
+# Tier-0 install dependency (req-tap-plugin-arch-dependencies-1): the pages here mount
+# git_serious's panels by entity id (USES_PANEL edges whose targets git_serious seeds), so
+# git_serious must be INSTALLED and SEEDED first. An install dep, not a code `depends_on`:
+# nothing here imports its Python (the git_serious → github_core precedent).
+dependencies = [
+    "git-serious-tap",
+]
+
+[project.entry-points."tap.plugins"]
+git_serious_double_tap = "tap_plugin.git_serious_double_tap.apps:GitSeriousDoubleTapConfig"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "factory-boy>=3.3",
+]
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+fallback_version = "0.0.0"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["tap_plugin/git_serious_double_tap"]
