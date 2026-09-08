@@ -9,9 +9,19 @@
       "note": "The combined `github` envelope (github_core >= v0.5.0, req-github-core-app-auth): an `app` block — a READ-ONLY GitHub App installed on the observed account (`data.owner`), minted with github_core's create-github-app skill — and/or a `pat` block — a fine-grained READ-ONLY PAT whose resource owner is the observed account, minted by hand in GitHub's UI — routed per collection source, never by preference order. Legacy `github_pat` / `github_app` envelopes still fold on read. Permissions are the union of what github_core's collection manifest declares per source; its App-permission ledger (github_app_permissions.json) is the authoritative list, and packages stay unobservable under an App credential until GitHub enables that surface for Apps."
     }
   ],
-  "description": "git-serious double-tap — the unified-systems-com INSTANCE composition: git-serious (the product, plan/product-map.md) plus the double-tap plugin that holds only what is specific to observing the organization that builds TAP. Installs the product's closure exactly as git-serious's own record does (identity_core, github_core, administrivia at the same immutable tags; git_serious from its repo), then the instance plugin; seeds the product's pages, then the instance's; fires the github_core collector against unified-systems-com. The landing page is decided HERE, by the operator, per req-web-page-landing: web pins the /double-tap page by entity id with its slug as a verified assertion — git-serious alone lands on /git-serious, this composition lands on /double-tap. DEV-PHASE record: git_serious and git_serious_double_tap pin branches until each has a tagged release (req-boot-bootstrap-stage0-3); the first tagged release replaces them and drops the marker.",
+  "description": "git-serious double-tap — the unified-systems-com INSTANCE composition: git-serious (the product, plan/product-map.md) plus the double-tap plugin that holds only what is specific to observing the organization that builds TAP. Installs the product's closure exactly as git-serious's own record does (git_core first, then identity_core, github_core, administrivia at the same pins; git_serious from its repo), then the instance plugin; seeds the product's pages, then the instance's; fires the github_core collector against unified-systems-com. The landing page is decided HERE, by the operator, per req-web-page-landing: web pins the /double-tap page by entity id with its slug as a verified assertion — git-serious alone lands on /git-serious, this composition lands on /double-tap. DEV-PHASE record: git_serious and git_serious_double_tap pin branches until each has a tagged release (req-boot-bootstrap-stage0-3); the first tagged release replaces them and drops the marker.",
   "install": {
     "plugins": [
+      {
+        "slug": "git_core",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/git-core-tap",
+          "rev": "10bb7631f6f42777247a33a9ff14a8af71170d6c"
+        },
+        "note": "Package-mode (tap_plugin.git_core). The neutral Git vocabulary github_core emits since v0.6.0 (github-core#76). First in the list: github_core depends on it and the pre-boot gate checks order. DEV-PHASE: immutable commit until git-core-tap tags v0.1.0; then the tag."
+      },
       {
         "slug": "administrivia",
         "enabled": true,
