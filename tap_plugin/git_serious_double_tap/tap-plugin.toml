@@ -23,4 +23,4 @@ home = "grift/home.grift.json"
 [[boot.records]]
 name = "git_serious_double_tap"
 description = "unified-systems-com instance of git-serious: the product's closure + the double-tap plugin, seeded in order, collector fired against the org, landing page pinned to /double-tap (web.landing_entity_id + web.landing_slug)."
-sha256 = "9e668e7084342de9429edf0ff8e7f92f28b0c21e8bf34bf128b00e9dd3a04ca0"
+sha256 = "fd532618260fa81ee3561acb874dc4541bd5ae4a68c6b0a3fb8c00d6724dc15c"
