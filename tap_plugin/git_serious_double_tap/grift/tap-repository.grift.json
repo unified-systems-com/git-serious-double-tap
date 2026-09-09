@@ -1,0 +1,882 @@
+{
+  "metadata": {
+    "grift_version": "0"
+  },
+  "_reserved": {},
+  "batches": [
+    {
+      "batch_entity": {
+        "entity_id": "01a087a8-1e02-77d8-ba74-51eaff135d11",
+        "entity_type": "batch",
+        "name": "git-serious double-tap: tap repository page v0.1.0",
+        "dimensions": {}
+      },
+      "batch_node": {
+        "source": "tap_plugin.git_serious_double_tap.grift.tap_repository",
+        "name": "git-serious double-tap: tap repository page v0.1.0",
+        "description": "The instance's one hardcoded page (git-serious-double-tap#9): /double-tap/tap is git-serious's generic repository page (git-serious-tap#56, PR# 58, bundle 'git-serious repository page v0.1.0' at revision origin/feat/repository-page) copied with its own entity ids and every search scoped to the literal \"unified-systems-com/tap\" (open pull requests only) instead of the ?repo= / ?state= inputs. Same structure — identity, machinery, open pull requests, status wall, not-observed — so the two pages read alike today; the machinery scene is this page's own so the visualization can be teased out into something tap-specific without touching the product's generic scene. Nothing of git_serious's bundle is mutated; github_core's machinery projection is shared by USES_PROJECTION edge (an out-of-file endpoint)."
+      },
+      "nodes": [
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "entity_type": "page",
+            "name": "tap",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "tap",
+            "slug": "/double-tap/tap",
+            "description": "unified-systems-com/tap, the repository that builds TAP, on its own page: the generic repository page's structure (identity, machinery, open pull requests, the status wall for this repository, its not-observed workflows) with every search hardcoded to unified-systems-com/tap — the instance's privilege, not the product's (git-serious-double-tap#9). Takes no input; ?repo= and ?state= are ignored.",
+            "layout": {
+              "full_bleed": true,
+              "columns": {
+                "col-1": {
+                  "width": "1fr",
+                  "rows": {
+                    "row-1": {
+                      "panel-id": "identity",
+                      "height": "auto"
+                    },
+                    "row-2": {
+                      "panel-id": "machinery",
+                      "height": "60vh"
+                    },
+                    "row-3": {
+                      "panel-id": "pulls",
+                      "height": "auto"
+                    },
+                    "row-4": {
+                      "panel-id": "status-wall",
+                      "height": "auto"
+                    },
+                    "row-5": {
+                      "panel-id": "not-observed",
+                      "height": "auto"
+                    }
+                  }
+                }
+              }
+            },
+            "nav_weight": 112
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51ec0a76ca18",
+            "entity_type": "search",
+            "name": "double-tap · tap — repository by full_name",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap · tap — repository by full_name",
+            "description": "The repository the page is about, by owner/name hardcoded to unified-systems-com/tap. Envelope mode so the identity table receives the node with its typed fields — including the custom-property values (github-core#77) and the observability states, which are what make an empty answer readable. (double-tap copy: the literal unified-systems-com/tap replaces the $repo input; open pull requests only.)",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (r:github_core__github_repository)",
+                "WHERE r.data.full_name = \"unified-systems-com/tap\"",
+                "RETURN r"
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51ed417f2d5d",
+            "entity_type": "panel",
+            "name": "This repository · tap",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "This repository · tap",
+            "slug": "double-tap-tap-identity",
+            "description": "Who this repository is, as the organization declares it: its role, criticality, lifecycle and owner are GitHub custom properties (github-core#77), read against the organization's own definitions — a dash is a declared property this repository has not set. The two 'read?' columns say whether the collector could read pull requests and properties at all: 'unobservable' means a blank below is a refusal, not an absence. (double-tap copy, scoped to unified-systems-com/tap.)",
+            "view": "tap_web/panels/table_panel.html",
+            "config": {
+              "default_page_size": 5,
+              "columns": [
+                {
+                  "field": "data.full_name",
+                  "title": "Repository",
+                  "widthGrow": 2,
+                  "formatter": "link",
+                  "formatter_params": {
+                    "href_field": "data.html_url"
+                  },
+                  "header_tooltip": "owner/name. Opens the repository on GitHub."
+                },
+                {
+                  "field": "data.custom_properties.repository-role",
+                  "title": "Role",
+                  "width": 110,
+                  "header_tooltip": "The repository's one primary purpose, as the organization declares it: platform, plugin, product, support or fixtures."
+                },
+                {
+                  "field": "data.custom_properties.criticality",
+                  "title": "Criticality",
+                  "width": 125,
+                  "header_tooltip": "Consequence of this repository failing or being compromised, for the organization as a whole — not current attention."
+                },
+                {
+                  "field": "data.custom_properties.lifecycle",
+                  "title": "Lifecycle",
+                  "width": 120,
+                  "header_tooltip": "experimental, stand-up, active, maintenance, deprecated, draw-down or retired."
+                },
+                {
+                  "field": "data.custom_properties.ownership-name",
+                  "title": "Owner",
+                  "width": 140,
+                  "header_tooltip": "The accountable owner: a team slug or a GitHub login (ownership-type says which)."
+                },
+                {
+                  "field": "data.default_branch",
+                  "title": "Default branch",
+                  "width": 140,
+                  "header_tooltip": "The branch most controls default to targeting."
+                },
+                {
+                  "field": "data.visibility",
+                  "title": "Visibility",
+                  "width": 110,
+                  "header_tooltip": "public, private or internal."
+                },
+                {
+                  "field": "data.pull_requests_observability",
+                  "title": "PRs read?",
+                  "width": 120,
+                  "header_tooltip": "observed = the collector read this repository's pull requests (zero below is then a fact); unobservable = it could not, so an empty list below means nothing; blank = never asked."
+                },
+                {
+                  "field": "data.custom_properties_observability",
+                  "title": "Properties read?",
+                  "width": 155,
+                  "header_tooltip": "observed = the organization's custom-property values were read (a dash is a declared property this repository has not set); unobservable = they could not be read; blank = never asked."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51ee86c274df",
+            "entity_type": "panel",
+            "name": "Machinery · tap",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "Machinery · tap",
+            "slug": "double-tap-tap-machinery",
+            "description": "This repository's CI system as nested machinery (github_core's machinery projection, git-serious-tap#35): sources on the right, pipelines in the middle, outputs on the left; a job whose place cannot be resolved is drawn as unknown, never as known. The same projection the landing page draws with, over this page's own scene searches; scoped to unified-systems-com/tap. GitHub nodes open their html_url in a new tab. (double-tap copy, scoped to unified-systems-com/tap.)",
+            "view": "tap_viz/panels/graph_panel.html",
+            "config": {
+              "height": "100%",
+              "hide_header": true,
+              "nav_rules": [
+                {
+                  "entity_type": "github_core__github_platform",
+                  "url_field": "html_url",
+                  "external": true
+                },
+                {
+                  "entity_type": "github_core__github_account",
+                  "url_field": "html_url",
+                  "external": true
+                },
+                {
+                  "entity_type": "github_core__github_repository",
+                  "url_field": "html_url",
+                  "external": true
+                },
+                {
+                  "entity_type": "github_core__github_workflow",
+                  "url_field": "html_url",
+                  "external": true
+                },
+                {
+                  "entity_type": "github_core__github_app",
+                  "url_field": "html_url",
+                  "external": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51efb0db532f",
+            "entity_type": "search",
+            "name": "double-tap · tap — repository page: machinery scene nodes",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap · tap — repository page: machinery scene nodes",
+            "description": "The machinery scene for the page's repository, one global WHERE scoped per variable: github.com (unfiltered, one), the repository's row, its workflows and declared jobs by full_name = $repo; environments, rulesets and apps unfiltered because their attachment is an edge and the layout module hides any no repository in the scene owns. The OWNING account is not matched here: since github-core#82 pull-request authors are github_account nodes too, so an unfiltered account match would float every author into the scene — the account rides the companion refs search, reached through OWNS_REPO. Refs ride there as well (they are git_core__git_ref with no full_name). Same picture as the landing page's scene, declared here so this page carries no default repository of its own. (double-tap copy: the literal unified-systems-com/tap replaces the $repo input; open pull requests only.)",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (p:github_core__github_platform)",
+                "MATCH (r:github_core__github_repository)",
+                "MATCH (w:github_core__github_workflow)",
+                "MATCH (j:github_core__workflow_job)",
+                "MATCH (e:github_core__github_environment)",
+                "MATCH (rs:github_core__github_ruleset)",
+                "MATCH (ap:github_core__github_app)",
+                "WHERE r.data.full_name = \"unified-systems-com/tap\" AND w.data.full_name = \"unified-systems-com/tap\" AND j.data.full_name = \"unified-systems-com/tap\""
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f01d12eb30",
+            "entity_type": "search",
+            "name": "double-tap · tap — repository page: machinery scene refs",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap · tap — repository page: machinery scene refs",
+            "description": "The page's repository's owning account and refs for the machinery scene, reached as one path: the account through OWNS_REPO (so only the OWNER enters the scene, never a pull-request author), then the hosting record, the neutral git_core__git_repository through HOSTS_REPOSITORY, and every git_core__git_ref through DECLARES_REF (refs carry no full_name). The graph panel unions this with the scene-node seed by entity id. (double-tap copy: the literal unified-systems-com/tap replaces the $repo input; open pull requests only.)",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (a:github_core__github_account)-[:OWNS_REPO__github_core]->(r:github_core__github_repository)-[:HOSTS_REPOSITORY__github_core]->(gr:git_core__git_repository)-[:DECLARES_REF__git_core]->(g:git_core__git_ref)",
+                "WHERE r.data.full_name = \"unified-systems-com/tap\""
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f1a27eee7b",
+            "entity_type": "search",
+            "name": "double-tap · tap — repository page: all edges (graph_panel filters by node-set)",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap · tap — repository page: all edges (graph_panel filters by node-set)",
+            "description": "All edges; the graph panel keeps only those whose endpoints are in the matched node-set (tap_viz panel-graph.js). (double-tap copy: the literal unified-systems-com/tap replaces the $repo input; open pull requests only.)",
+            "search_type": "orm",
+            "root": "edge",
+            "definition": {
+              "filters": {},
+              "order_by": [
+                "edge_type"
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f2a298f360",
+            "entity_type": "search",
+            "name": "double-tap · tap — open pull requests of a repository, most recently updated first",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap · tap — open pull requests of a repository, most recently updated first",
+            "description": "The open pull requests against the page's repository (github_core__pull_request, github-core#82), most recently updated first. Envelope mode so the table receives the typed fields — the head commit's check rollup rides each row. The collected window is the thirty most recently updated pull requests per repository in any state; an open one older than that window is not here, and github_repository.pull_requests_total on the identity row is the honest count. (double-tap copy: the literal unified-systems-com/tap replaces the $repo input; open pull requests only.)",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (p:github_core__pull_request)",
+                "WHERE p.data.full_name = \"unified-systems-com/tap\" AND p.data.state = \"OPEN\"",
+                "RETURN p",
+                "ORDER BY p.data.updated_at DESC"
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f37ade0951",
+            "entity_type": "panel",
+            "name": "Open pull requests · tap",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "Open pull requests · tap",
+            "slug": "double-tap-tap-pulls",
+            "description": "What is proposed against this repository right now, and where each proposal stands. Checks is GitHub's combined verdict on the pull request's head commit — every check run and commit status counted, App-produced ones included — and the count beside it is how many the verdict counted; a dash means nothing has run on that head, which is not green. Review and Mergeable are GitHub's own words: a first read of mergeability is often UNKNOWN, and that is what it says. The number opens the pull request on GitHub; the head branch opens it on the branch's own repository, which for a fork is not this one. Click anywhere else on a row for the pull request on the grid. (double-tap copy, scoped to unified-systems-com/tap.)",
+            "view": "tap_web/panels/table_panel.html",
+            "config": {
+              "default_page_size": 50,
+              "quick_filter": true,
+              "refresh_seconds": 60,
+              "columns": [
+                {
+                  "field": "data.number",
+                  "title": "PR",
+                  "width": 80,
+                  "formatter": "link",
+                  "formatter_params": {
+                    "href_field": "data.html_url"
+                  },
+                  "header_tooltip": "The pull request number. Opens it on GitHub."
+                },
+                {
+                  "field": "data.title",
+                  "title": "Title",
+                  "widthGrow": 3,
+                  "tooltip": "full_value",
+                  "header_tooltip": "The title as written."
+                },
+                {
+                  "field": "data.author_login",
+                  "title": "Author",
+                  "width": 150,
+                  "header_tooltip": "Who opened it. A Bot author is an App."
+                },
+                {
+                  "field": "data.head_ref",
+                  "title": "Head",
+                  "widthGrow": 2,
+                  "tooltip": "full_value",
+                  "formatter": "link",
+                  "formatter_params": {
+                    "href_template": "https://github.com/{data.head_repository}/tree/{data.head_ref}"
+                  },
+                  "header_tooltip": "The proposed branch. Opens it on the repository it lives in — a fork's branch opens on the fork."
+                },
+                {
+                  "field": "data.base_ref",
+                  "title": "Base",
+                  "width": 100,
+                  "header_tooltip": "The branch it asks to land on — the one whose rulesets gate the merge."
+                },
+                {
+                  "field": "data.checks_rollup_state",
+                  "title": "Checks",
+                  "width": 110,
+                  "formatter": "conclusionBadge",
+                  "header_tooltip": "GitHub's combined verdict on the head commit: SUCCESS, FAILURE, PENDING, ERROR or EXPECTED. A dash means no check has run on this head, which is not the same as green."
+                },
+                {
+                  "field": "data.checks",
+                  "title": "n",
+                  "width": 55,
+                  "formatter": "arrayCount",
+                  "header_tooltip": "How many check runs and commit statuses the verdict counted, App-produced ones included."
+                },
+                {
+                  "field": "data.review_decision",
+                  "title": "Review",
+                  "width": 165,
+                  "header_tooltip": "GitHub's review decision: APPROVED, CHANGES_REQUESTED, REVIEW_REQUIRED; blank when no review is required."
+                },
+                {
+                  "field": "data.mergeable",
+                  "title": "Mergeable",
+                  "width": 110,
+                  "header_tooltip": "GitHub's mergeability: MERGEABLE, CONFLICTING or UNKNOWN (computed lazily — a first read often says UNKNOWN)."
+                },
+                {
+                  "field": "data.updated_at",
+                  "title": "Updated",
+                  "formatter": "datetime",
+                  "header_tooltip": "When GitHub last recorded a change on the pull request, in your local time. Hover for UTC.",
+                  "width": 170
+                }
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f4e1385e49",
+            "entity_type": "search",
+            "name": "double-tap · tap — status wall for one repository: runs, newest first",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap · tap — status wall for one repository: runs, newest first",
+            "description": "The landing page's status wall rows (req-git-serious-status-wall-1), filtered to the page's repository: every workflow run github_core collected for it, newest first by run_started_at. Envelope mode for the table panel. Covers the collected window only. (double-tap copy: the literal unified-systems-com/tap replaces the $repo input; open pull requests only.)",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (r:github_core__github_actions_run)",
+                "WHERE r.data.full_name = \"unified-systems-com/tap\"",
+                "RETURN r",
+                "ORDER BY r.data.run_started_at DESC"
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f514c490f8",
+            "entity_type": "panel",
+            "name": "Status wall — this repository · tap",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "Status wall — this repository · tap",
+            "slug": "double-tap-tap-status-wall",
+            "description": "Is anything broken here right now? The landing page's status wall, filtered to this repository: every collected run, newest first. The glyph is the trigger; the run number opens the run on GitHub; the branch opens the branch on GitHub. Elapsed, its ratio to the workflow's own baseline (▲ slower, ▼ faster, – not enough history) and the sample size (n) sort independently; a run still in flight shows a dash. History is the workflow's runs as a strip and opens the workflow page. Click anywhere else on a row for the run on the grid. (double-tap copy, scoped to unified-systems-com/tap.)",
+            "view": "tap_web/panels/table_panel.html",
+            "config": {
+              "default_page_size": 200,
+              "quick_filter": true,
+              "columns": [
+                {
+                  "field": "data.event",
+                  "title": "",
+                  "width": 40,
+                  "headerSort": false,
+                  "formatter": "iconMap",
+                  "formatter_params": {
+                    "icons": {
+                      "push": "/static/tap_web/icons/trigger-push.svg",
+                      "pull_request": "/static/tap_web/icons/trigger-pull-request.svg",
+                      "pull_request_target": "/static/tap_web/icons/trigger-pull-request.svg",
+                      "schedule": "/static/tap_web/icons/trigger-schedule.svg",
+                      "workflow_dispatch": "/static/tap_web/icons/trigger-manual.svg",
+                      "workflow_run": "/static/tap_web/icons/trigger-chained.svg",
+                      "workflow_call": "/static/tap_web/icons/trigger-chained.svg",
+                      "dynamic": "/static/tap_web/icons/trigger-platform.svg",
+                      "repository_dispatch": "/static/tap_web/icons/trigger-manual.svg"
+                    },
+                    "labels": {
+                      "push": "push",
+                      "pull_request": "pull request",
+                      "pull_request_target": "pull request (target)",
+                      "schedule": "schedule",
+                      "workflow_dispatch": "manual dispatch",
+                      "workflow_run": "chained off another run",
+                      "workflow_call": "called by another workflow",
+                      "dynamic": "platform-originated (CodeQL, Copilot, Dependabot…)",
+                      "repository_dispatch": "repository dispatch"
+                    }
+                  },
+                  "header_tooltip": "Trigger — what started the run: push, pull request, schedule, manual dispatch, a run chained off another run, or platform-originated (CodeQL, Copilot, Dependabot). Hover a glyph for its name."
+                },
+                {
+                  "field": "data.run_number",
+                  "title": "Run",
+                  "width": 80,
+                  "formatter": "link",
+                  "formatter_params": {
+                    "href_field": "data.html_url"
+                  },
+                  "header_tooltip": "GitHub's run number within the repository. Opens the run on GitHub."
+                },
+                {
+                  "field": "data.head_branch",
+                  "title": "Branch",
+                  "widthGrow": 2,
+                  "tooltip": "full_value",
+                  "formatter": "link",
+                  "formatter_params": {
+                    "href_template": "https://github.com/{data.full_name}/tree/{data.head_branch}"
+                  },
+                  "header_tooltip": "The branch or ref the run built. Opens the branch on GitHub."
+                },
+                {
+                  "field": "data.conclusion",
+                  "title": "Conclusion",
+                  "formatter": "conclusionBadge",
+                  "width": 120,
+                  "header_tooltip": "GitHub's terminal conclusion: success, failure, cancelled, skipped… A dash means the run has not concluded (queued or still running)."
+                },
+                {
+                  "field": "data.completed_at",
+                  "title": "Elapsed",
+                  "formatter": "elapsed",
+                  "width": 100,
+                  "formatter_params": {
+                    "start": "data.run_started_at",
+                    "end": "data.completed_at",
+                    "require_field": "data.conclusion"
+                  },
+                  "header_tooltip": "Wall-clock time from run start to completion. A dash means the run has not concluded."
+                },
+                {
+                  "field": "data.completed_at",
+                  "title": "vs usual",
+                  "formatter": "baselineRatio",
+                  "width": 90,
+                  "formatter_params": {
+                    "start": "data.run_started_at",
+                    "end": "data.completed_at",
+                    "require_field": "data.conclusion",
+                    "baseline": {
+                      "group_by": [
+                        "data.configuration.workflow_id",
+                        "data.event"
+                      ],
+                      "where": {
+                        "data.conclusion": "success"
+                      },
+                      "min_n": 3,
+                      "flag_ratio": 1.5,
+                      "mad_k": 3
+                    }
+                  },
+                  "header_tooltip": "This run's elapsed over the median of the other successful runs of the same workflow and trigger loaded on this page. ▲ slower than usual, ▼ faster than usual, plain = within the usual range, – = not enough history (see n)."
+                },
+                {
+                  "field": "data.completed_at",
+                  "title": "n",
+                  "formatter": "baselineN",
+                  "width": 55,
+                  "formatter_params": {
+                    "start": "data.run_started_at",
+                    "end": "data.completed_at",
+                    "require_field": "data.conclusion",
+                    "baseline": {
+                      "group_by": [
+                        "data.configuration.workflow_id",
+                        "data.event"
+                      ],
+                      "where": {
+                        "data.conclusion": "success"
+                      },
+                      "min_n": 3,
+                      "flag_ratio": 1.5,
+                      "mad_k": 3
+                    }
+                  },
+                  "header_tooltip": "How many comparable runs — same workflow and trigger, successful — are loaded on this page to form the baseline. Grey below 3: too few to call anything unusual."
+                },
+                {
+                  "field": "data.run_started_at",
+                  "title": "Started",
+                  "formatter": "datetime",
+                  "widthGrow": 1,
+                  "header_tooltip": "When the run started, in your local time. Hover for UTC."
+                },
+                {
+                  "field": "data.completed_at",
+                  "title": "Completed",
+                  "formatter": "datetime",
+                  "widthGrow": 1,
+                  "header_tooltip": "When the run completed, in your local time. Hover for UTC."
+                },
+                {
+                  "field": "data.configuration.workflow_id",
+                  "title": "History",
+                  "width": 140,
+                  "headerSort": false,
+                  "formatter": "sparkline",
+                  "formatter_params": {
+                    "group_by": [
+                      "data.configuration.workflow_id"
+                    ],
+                    "x": "data.run_started_at",
+                    "start": "data.run_started_at",
+                    "end": "data.completed_at",
+                    "require_field": "data.conclusion",
+                    "href_template": "/git-serious/workflow?workflow_id={data.configuration.workflow_id}"
+                  },
+                  "header_tooltip": "This workflow's runs on this page as a strip: one bar per run at its actual start time; bar height is elapsed relative to the workflow's longest; red = failed, dark = this run, dashed line = the median. Opens the workflow page."
+                }
+              ],
+              "height": 560,
+              "refresh_seconds": 60
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f64ec8852f",
+            "entity_type": "search",
+            "name": "double-tap · tap — one repository's workflows with no run in the collected window",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap · tap — one repository's workflows with no run in the collected window",
+            "description": "The landing page's not-observed rows, filtered to the page's repository: workflows this repository declares for which no run was collected. Absence of a run in the window is not evidence the workflow never runs — it is what the collector has not gathered. (double-tap copy: the literal unified-systems-com/tap replaces the $repo input; open pull requests only.)",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (repo:github_core__github_repository)-[e:DEFINES_WORKFLOW__github_core]->(w:github_core__github_workflow)",
+                "WHERE repo.data.full_name = \"unified-systems-com/tap\"",
+                "NOT EXISTS { MATCH (r:github_core__github_actions_run)-[:EXECUTES_WORKFLOW__github_core]->(w) }",
+                "RETURN w"
+              ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f73b120e4f",
+            "entity_type": "panel",
+            "name": "Not observed in the collected window · tap",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "Not observed in the collected window · tap",
+            "slug": "double-tap-tap-not-observed",
+            "description": "Workflows this repository declares for which no run has been collected. Not evidence they never run: the collector gathers a window of runs per repository, and these fell outside it — or they only run on a trigger that has not fired. (double-tap copy, scoped to unified-systems-com/tap.)",
+            "view": "tap_web/panels/table_panel.html",
+            "config": {
+              "default_page_size": 200,
+              "quick_filter": true,
+              "columns": [
+                {
+                  "field": "data.name",
+                  "title": "Workflow",
+                  "widthGrow": 2,
+                  "header_tooltip": "The workflow as declared in the repository."
+                },
+                {
+                  "field": "data.path",
+                  "title": "Path",
+                  "widthGrow": 2,
+                  "tooltip": "full_value",
+                  "header_tooltip": "The workflow file's path in the repository."
+                },
+                {
+                  "field": "data.state",
+                  "title": "State",
+                  "width": 110,
+                  "header_tooltip": "GitHub's workflow state: active, disabled_manually, disabled_inactivity…"
+                },
+                {
+                  "field": "data.html_url",
+                  "title": "GitHub",
+                  "formatter": "externalLink",
+                  "widthGrow": 1,
+                  "header_tooltip": "Opens the workflow on GitHub."
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f8cb3a435c",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL identity (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51ed417f2d5d",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "identity"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51f9d73536bd",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL machinery (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51ee86c274df",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "machinery"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51fa790016af",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL pulls (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51f37ade0951",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "pulls"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51fbf3394bf4",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL status-wall (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51f514c490f8",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "status-wall"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51fc38ee50f3",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL not-observed (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51f73b120e4f",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "not-observed"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51fdae388f7e",
+            "entity_type": "edge",
+            "name": "Identity USES_SEARCH repository by full_name (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51ed417f2d5d",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51ec0a76ca18",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51fe17295cfc",
+            "entity_type": "edge",
+            "name": "Machinery USES_SEARCH scene nodes (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51ee86c274df",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51efb0db532f",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51ff81529b5c",
+            "entity_type": "edge",
+            "name": "Machinery USES_SEARCH scene refs (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51ee86c274df",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51f01d12eb30",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-5200d58fac72",
+            "entity_type": "edge",
+            "name": "Machinery USES_SEARCH all edges (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51ee86c274df",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51f1a27eee7b",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-5201c881604c",
+            "entity_type": "edge",
+            "name": "Machinery USES_PROJECTION landing projection (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51ee86c274df",
+            "to_entity_id": "01a03f78-11fa-7029-823d-7948f2e17cfb",
+            "edge_type": "USES_PROJECTION",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-5202e876c3c8",
+            "entity_type": "edge",
+            "name": "Pulls USES_SEARCH open pull requests of a repository (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51f37ade0951",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51f2a298f360",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-5203b971d963",
+            "entity_type": "edge",
+            "name": "Status wall USES_SEARCH runs of one repository (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51f514c490f8",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51f4e1385e49",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-52043ad91a6d",
+            "entity_type": "edge",
+            "name": "Not-observed USES_SEARCH one repository's workflows with no run (tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51f73b120e4f",
+            "to_entity_id": "01a087a8-1e02-77d8-ba74-51f64ec8852f",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        }
+      ]
+    }
+  ]
+}

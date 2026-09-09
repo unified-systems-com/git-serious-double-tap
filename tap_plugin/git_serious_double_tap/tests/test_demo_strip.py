@@ -193,6 +193,13 @@ def test_merged_only_repository_shows_latest_merge_and_no_rows() -> None:
 def test_card_links_to_the_git_serious_repository_page() -> None:
     card = build_cards(_env([_repo("o/r")], [_pr("o/r", 1)]), now=NOW)[0]
     assert card.page_url == "/git-serious/repository?repo=o/r"
+    tap = build_cards(
+        _env([_repo("unified-systems-com/tap")], [_pr("unified-systems-com/tap", 1)]),
+        now=NOW,
+    )[0]
+    assert (
+        tap.page_url == "/double-tap/tap"
+    )  # the instance's own page for its own repository
 
 
 def test_pull_request_without_a_repository_node_is_not_a_card() -> None:

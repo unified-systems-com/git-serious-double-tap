@@ -93,6 +93,11 @@ NAVIGATION: list[dict[str, str]] = [
 REPO_PAGE_SLUG = "/git-serious/repository"
 REPO_PAGE_VAR = "repo"
 
+#: The instance's own pages for particular repositories — the one place a card link is allowed to
+#: be specific. tap has its own hardcoded page (git-serious-double-tap#9); everything else opens
+#: the generic page.
+REPO_PAGE_OVERRIDES: dict[str, str] = {"unified-systems-com/tap": "/double-tap/tap"}
+
 # The declared reads. Node-only scans and one edge pattern, kept separate because the executor
 # will not mix them in one query. The collection-job scan is the readiness signal: the newest
 # github_core job's status and finish time are what "last successful collection" means.
@@ -439,7 +444,10 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
                 -1
             ],  # the org is the whole strip; the card says the repository
             html_url=str(repo.get("html_url") or ""),
-            page_url=f"{REPO_PAGE_SLUG}?{REPO_PAGE_VAR}={quote(full_name, safe='/')}",
+            page_url=REPO_PAGE_OVERRIDES.get(
+                full_name,
+                f"{REPO_PAGE_SLUG}?{REPO_PAGE_VAR}={quote(full_name, safe='/')}",
+            ),
             criticality=criticality,
             criticality_note=note,
             last_activity=max(qualifying),
