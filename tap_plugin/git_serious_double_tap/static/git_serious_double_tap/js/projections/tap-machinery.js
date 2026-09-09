@@ -31,14 +31,12 @@
  *      publish chain is read.
  *   3. Cross-lane relationships the base picture cannot draw: `uses:` of a local reusable
  *      workflow and `workflow_run` chaining, as synthetic dashed / dotted edges.
- *   4. Chains and what they leave behind. Workflows joined by `workflow_run` are grouped in a
- *      vertical chain frame inside their lane (AI review capture above AI review). Artifacts
- *      each workflow's runs uploaded in the collected window are drawn inside the workflow box
- *      as one pile per kind ("schemathesis-log" with a chip of 21), in a column after the
- *      jobs. Kinds are the upload names with
- *      their variable parts (hashes, matrix tokens) folded — the YAML-declared kinds are the
- *      github_core follow-up. A reusable baseline workflow is aligned under the caller that
- *      sits in the scheduled line (api-fuzz under api-fuzz-nightly).
+ *   4. Chains. Workflows joined by `workflow_run` are grouped in a vertical chain frame inside
+ *      their lane (AI review capture above AI review). A reusable baseline workflow is aligned
+ *      under the caller that sits in the scheduled line (api-fuzz under api-fuzz-nightly).
+ *      Artifacts are NOT drawn at this altitude: github_core's workflow page
+ *      (/github_core/workflow, spec-github-core-workflow-page-v0.md) is where a workflow's
+ *      artifact kinds live, as piles on the job that declares them.
  *   5. Destinations. A registry the publish lane's workflows name in their files (the
  *      collector extracts domain names from each workflow) is drawn inside github.com but
  *      outside the account box, to the left of it — ghcr.io today, with the package icon —
@@ -61,7 +59,7 @@
 
 import {projectNested} from "/static/tap_viz/js/runtime/nested-projection.js";
 import {applyStandardChrome, placeParentLabels, parentLabelInset} from "/static/tap_viz/js/runtime/chrome.js";
-import {applyStack, settleStacks} from "/static/tap_viz/js/runtime/stack.js";
+import {settleStacks} from "/static/tap_viz/js/runtime/stack.js";
 
 const GRYPHON_URL = "/api/v1/gryphon/execute";
 
@@ -82,7 +80,6 @@ const T = {
     placeholder: "_machinery_placeholder",
     registry: "_tap_registry",
     chain: "_tap_chain",
-    artifact: "_tap_artifact_kind",
     pipelines: "_tap_pipelines",
     toprow: "_tap_toprow",
     lane: "_tap_lane",
@@ -108,7 +105,6 @@ const SYN = {
     hasRef: "_MACHINERY_HAS_REF",
     hostsRegistry: "_TAP_HOSTS_REGISTRY",
     hasChain: "_TAP_HAS_CHAIN",
-    emits: "_TAP_EMITS_ARTIFACT",
     pushesTo: "_TAP_PUSHES_TO",
     hasBlock: "_TAP_HAS_BLOCK",
     hasLane: "_TAP_HAS_LANE",
@@ -132,7 +128,6 @@ const BASE_SIZES = {
     [T.placeholder]: {width: 190, height: 30},
     [T.registry]: {width: 190, height: 44},
     [T.chain]: {width: 200, height: 60},
-    [T.artifact]: {width: 180, height: 34},
     [T.pipelines]: {width: 240, height: 60},
     [T.toprow]: {width: 240, height: 60},
     ...Object.fromEntries(LANE_TYPES.map((t) => [t, {width: 240, height: 60}])),
@@ -143,7 +138,6 @@ const DEFAULTS = {flow: "rtl", column_gap: 48, row_gap: 12};
 //: Registries a workflow file can name. Matched against the collector's extracted domain names,
 //: publish lane only — a domain in a scanner's file is an input, not a destination.
 const PACKAGE_ICON = "/static/github_core/icons/github-package.svg";
-const ARTIFACT_ICON = "/static/github_core/icons/actions-artifact.svg";
 
 const REGISTRY_RE = /^(ghcr\.io|docker\.io|index\.docker\.io|quay\.io|public\.ecr\.aws|[\w.-]+\.dkr\.ecr\.[\w-]+\.amazonaws\.com|[\w.-]+\.pkg\.dev|mcr\.microsoft\.com|registry\.npmjs\.org|upload\.pypi\.org)$/;
 
@@ -190,7 +184,6 @@ export async function execute(context) {
         _addLanes(cy, repo, plan);
         _addChains(cy, repo, plan);
         _addRegistries(cy, repo, plan, fullName);
-        _addArtifacts(cy, plan, await _fetchArtifacts(fullName, warn), fullName);
         _drawRelationships(cy, plan);
         plans.push(plan);
         laned += plan.size;
@@ -213,7 +206,6 @@ export async function execute(context) {
             {name: "repository-has-block", gryphon: `(parent:${T.repository})-[:${SYN.hasBlock}]->(child:${T.pipelines})`},
             {name: "platform-hosts-registry", gryphon: `(parent:${T.platform})-[:${SYN.hostsRegistry}]->(child:${T.registry})`},
             {name: "lane-has-chain", gryphon: `(parent)-[:${SYN.hasChain}]->(child:${T.chain})`},
-            {name: "workflow-emits-artifact", gryphon: `(parent:${T.workflow})-[:${SYN.emits}]->(child:${T.artifact})`},
             {name: "block-has-toprow", gryphon: `(parent:${T.pipelines})-[:${SYN.hasBlock}]->(child:${T.toprow})`},
             {name: "block-has-lane", gryphon: `(parent)-[:${SYN.hasLane}]->(child)`},
             {name: "lane-holds-workflow", gryphon: `(parent)-[:${SYN.laneHolds}]->(child:${T.workflow})`},
@@ -280,7 +272,6 @@ export async function execute(context) {
     for (const plan of plans) {
         _mirrorPublishJobs(cy, plan);
         _alignBaseline(cy, plan);
-        _stackArtifacts(cy, plan);
     }
     _placeRegistriesLeft(cy);
     placeParentLabels(cy, {anchor: "upper-left", inset: 8, parentFontSize: chrome.parentFontSize, parentFontWeight: chrome.parentFontWeight});
@@ -342,99 +333,6 @@ function _placeRegistriesLeft(cy) {
     if (need > 0) {
         platform.style({"width": platform.width() + need});
         platform.position({x: platform.position("x") - need / 2, y: platform.position("y")});
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Artifacts — what each workflow's runs left behind, by kind
-// ---------------------------------------------------------------------------
-
-async function _fetchArtifacts(fullName, warn) {
-    try {
-        return await _gryphonRows(
-            [
-                `MATCH (w:${T.workflow})<-[:EXECUTES_WORKFLOW__github_core]-(r:github_core__github_actions_run)-[:UPLOADS_ARTIFACT__github_core]->(a:github_core__actions_artifact)`,
-                "WHERE w.data.full_name = $repo",
-                "RETURN w.entity_id AS wf, a.data.name AS name, a.data.expired AS expired, a.data.size_in_bytes AS size, r.data.run_id AS run_id",
-            ],
-            {repo: fullName},
-        );
-    } catch (err) {
-        warn("tap_lanes_artifacts", `${fullName}: ${err.message}`);
-        return [];
-    }
-}
-
-//: Fold the variable parts of an upload name into one kind: long hex, 4+ character upper/digit
-//: tokens (matrix ids, buildx records) and bare numbers.
-function _artifactKind(name) {
-    return String(name || "")
-        .replace(/[0-9a-f]{7,}/gi, "*")
-        .replace(/[A-Z0-9]{4,}/g, "*")
-        .replace(/\d+/g, "#");
-}
-
-function _addArtifacts(cy, plan, rows, fullName) {
-    const byWf = new Map(); // wfId → Map(kind → {count, expired, latestRun})
-    for (const row of rows) {
-        const wf = String(row.wf || "");
-        if (!plan.has(wf)) continue;
-        const kind = _artifactKind(row.name);
-        if (!byWf.has(wf)) byWf.set(wf, new Map());
-        const kinds = byWf.get(wf);
-        const k = kinds.get(kind) || {count: 0, expired: 0, latestRun: 0};
-        k.count += 1;
-        if (row.expired) k.expired += 1;
-        k.latestRun = Math.max(k.latestRun, Number(row.run_id) || 0);
-        kinds.set(kind, k);
-    }
-    for (const [wf, kinds] of byWf) {
-        const item = plan.get(wf);
-        // The artifact column sits after the last job column inside the workflow box.
-        const jobs = cy.nodes(`[_viewport_parent = "${wf}"]`);
-        const lastStage = jobs.reduce((m, j) => Math.max(m, Number(j.data("_stage")) || 0), 0);
-        const sorted = [...kinds.entries()].sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]));
-        item.artifactIds = [];
-        item.artifactCounts = {};
-        sorted.forEach(([kind, k], i) => {
-            const id = `${T.artifact}:${wf}:${i}`;
-            cy.add({
-                group: "nodes",
-                data: {id, entity_type: T.artifact, label: kind, shape: "round-rectangle", icon_url: ARTIFACT_ICON, fill_color: "#fffbea", border_color: "#a15c00", label_color: "#5a3d00",
-                       _stage: lastStage + 1, _order: i, _count: k.count, _expired: k.expired, _kind: kind,
-                       nav_url: k.latestRun ? `https://github.com/${fullName}/actions/runs/${k.latestRun}` : "", nav_external: !!k.latestRun},
-                classes: "tap-artifact",
-            });
-            cy.add({group: "edges", data: {id: `${SYN.emits}:${id}`, source: wf, target: id, edge_type: SYN.emits}, classes: "tap-lane-containment"});
-            item.artifactIds.push(id);
-            item.artifactCounts[id] = k.count;
-        });
-        item.artifactTotal = sorted.reduce((s, [, k]) => s + k.count, 0);
-    }
-}
-
-function _stackArtifacts(cy, plan) {
-    // One pile per kind: the kind node laid out in the nesting pass is the face; the other
-    // artifacts of that kind are cards added AFTER the pass (so the workflow box did not grow for
-    // them), parented to the workflow for re-entry and placed under the face. The chip is the count.
-    for (const item of plan.values()) {
-        for (const id of item.artifactIds || []) {
-            const face = cy.getElementById(id);
-            if (face.empty()) continue;
-            const count = item.artifactCounts[id] || 1;
-            const members = [face];
-            for (let i = 1; i < count; i++) {
-                members.push(cy.add({
-                    group: "nodes",
-                    data: {id: `${id}:card:${i}`, entity_type: T.artifact, label: face.data("label"), shape: "round-rectangle", icon_url: ARTIFACT_ICON,
-                           fill_color: "#fffbea", border_color: "#a15c00", label_color: "#5a3d00", _viewport_parent: item.id, _card: true},
-                    position: {x: face.position("x"), y: face.position("y")},
-                    classes: "tap-artifact tap-artifact-card",
-                }));
-            }
-            if (members.length < 2) continue;
-            applyStack(cy, {members: cy.collection(members), representative: face, label: face.data("label"), stackId: `stack:artifact:${id}`, direction: "down"});
-        }
     }
 }
 
@@ -757,9 +655,6 @@ function _style(cy) {
         .selector(".tap-registry")
         .style({"label": "data(label)", "text-opacity": 1, "text-valign": "center", "text-halign": "center", "text-wrap": "ellipsis", "text-max-width": "160px",
                 "background-color": "#ffffff", "background-opacity": 1, "border-width": 2, "border-color": "#1b1d22", "color": "#1b1d22", "font-size": "12px", "font-weight": 600})
-        .selector(".tap-artifact")
-        .style({"label": "data(label)", "text-opacity": 1, "text-valign": "center", "text-halign": "center", "text-wrap": "ellipsis", "text-max-width": "150px",
-                "background-color": "#fffbea", "background-opacity": 1, "border-width": 1, "border-color": "#a15c00", "color": "#5a3d00", "font-size": "10px"})
         .selector(".tap-lane-pushes")
         .style({"line-style": "solid", "width": 2, "label": "data(label)", "line-color": "#1b1d22", "target-arrow-color": "#1b1d22"})
         .selector(".tap-lane-calls")
@@ -775,7 +670,6 @@ function _clear(cy) {
     cy.remove(cy.nodes(".tap-lane"));
     cy.remove(cy.nodes(".tap-frame"));
     cy.remove(cy.nodes(".tap-registry"));
-    cy.remove(cy.nodes(".tap-artifact"));
     cy.remove(cy.nodes(".tap-chain"));
     cy.nodes("[_label_base]").forEach((n) => n.data("label", n.data("_label_base")));
 }
