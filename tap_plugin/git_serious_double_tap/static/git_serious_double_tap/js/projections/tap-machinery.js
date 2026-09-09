@@ -34,8 +34,8 @@
  *   4. Chains and what they leave behind. Workflows joined by `workflow_run` are grouped in a
  *      vertical chain frame inside their lane (AI review capture above AI review). Artifacts
  *      each workflow's runs uploaded in the collected window are drawn inside the workflow box
- *      as one node per kind ("schemathesis-log ×21"), in a column after the jobs, stacked with
- *      a count when a workflow emits more than one kind. Kinds are the upload names with
+ *      as one pile per kind ("schemathesis-log" with a chip of 21), in a column after the
+ *      jobs. Kinds are the upload names with
  *      their variable parts (hashes, matrix tokens) folded — the YAML-declared kinds are the
  *      github_core follow-up. A reusable baseline workflow is aligned under the caller that
  *      sits in the scheduled line (api-fuzz under api-fuzz-nightly).
@@ -395,34 +395,46 @@ function _addArtifacts(cy, plan, rows, fullName) {
         const lastStage = jobs.reduce((m, j) => Math.max(m, Number(j.data("_stage")) || 0), 0);
         const sorted = [...kinds.entries()].sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]));
         item.artifactIds = [];
+        item.artifactCounts = {};
         sorted.forEach(([kind, k], i) => {
             const id = `${T.artifact}:${wf}:${i}`;
             cy.add({
                 group: "nodes",
-                data: {id, entity_type: T.artifact, label: `${kind} ×${k.count}`, shape: "round-rectangle", icon_url: ARTIFACT_ICON, fill_color: "#fffbea", border_color: "#a15c00", label_color: "#5a3d00",
+                data: {id, entity_type: T.artifact, label: kind, shape: "round-rectangle", icon_url: ARTIFACT_ICON, fill_color: "#fffbea", border_color: "#a15c00", label_color: "#5a3d00",
                        _stage: lastStage + 1, _order: i, _count: k.count, _expired: k.expired, _kind: kind,
                        nav_url: k.latestRun ? `https://github.com/${fullName}/actions/runs/${k.latestRun}` : "", nav_external: !!k.latestRun},
                 classes: "tap-artifact",
             });
             cy.add({group: "edges", data: {id: `${SYN.emits}:${id}`, source: wf, target: id, edge_type: SYN.emits}, classes: "tap-lane-containment"});
             item.artifactIds.push(id);
+            item.artifactCounts[id] = k.count;
         });
         item.artifactTotal = sorted.reduce((s, [, k]) => s + k.count, 0);
     }
 }
 
 function _stackArtifacts(cy, plan) {
+    // One pile per kind: the kind node laid out in the nesting pass is the face; the other
+    // artifacts of that kind are cards added AFTER the pass (so the workflow box did not grow for
+    // them), parented to the workflow for re-entry and placed under the face. The chip is the count.
     for (const item of plan.values()) {
-        const ids = item.artifactIds || [];
-        if (ids.length < 2) continue;
-        const members = cy.collection(ids.map((id) => cy.getElementById(id)));
-        applyStack(cy, {
-            members,
-            representative: members[0],
-            label: `${item.artifactTotal} artifacts · ${ids.length} kinds`,
-            stackId: `stack:artifacts:${item.id}`,
-            direction: "down",
-        });
+        for (const id of item.artifactIds || []) {
+            const face = cy.getElementById(id);
+            if (face.empty()) continue;
+            const count = item.artifactCounts[id] || 1;
+            const members = [face];
+            for (let i = 1; i < count; i++) {
+                members.push(cy.add({
+                    group: "nodes",
+                    data: {id: `${id}:card:${i}`, entity_type: T.artifact, label: face.data("label"), shape: "round-rectangle", icon_url: ARTIFACT_ICON,
+                           fill_color: "#fffbea", border_color: "#a15c00", label_color: "#5a3d00", _viewport_parent: item.id, _card: true},
+                    position: {x: face.position("x"), y: face.position("y")},
+                    classes: "tap-artifact tap-artifact-card",
+                }));
+            }
+            if (members.length < 2) continue;
+            applyStack(cy, {members: cy.collection(members), representative: face, label: face.data("label"), stackId: `stack:artifact:${id}`, direction: "down"});
+        }
     }
 }
 
