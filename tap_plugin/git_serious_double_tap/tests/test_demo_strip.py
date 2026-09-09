@@ -392,23 +392,21 @@ def test_card_state_and_nudge_precedence() -> None:
         ),
     ]
     by = {c.full_name: c for c in build_cards(_env(repos, prs), now=NOW)}
-    assert (by["o/f"].state, by["o/f"].verb, by["o/f"].headline) == (
+    assert (by["o/f"].state, by["o/f"].headline) == (
         "failed",
-        "Fix",
-        "1 failing check on #1",
+        "Fix 1 failing check on PR #1",
     )
-    assert (by["o/u"].state, by["o/u"].verb) == ("unobservable", "Look")
-    assert (by["o/p"].state, by["o/p"].verb, by["o/p"].headline) == (
+    assert by["o/f"].targets == [(1, "https://github.com/o/f/pull/1/checks")]
+    assert (by["o/u"].state, by["o/u"].verb) == ("unobservable", "Look at")
+    assert (by["o/p"].state, by["o/p"].headline) == (
         "pending",
-        "Wait",
-        "1 check still running on #3",
+        "Wait for 1 check on PR #3",
     )
-    assert (by["o/g"].state, by["o/g"].verb) == ("green", "Review")
-    assert by["o/g"].headline == "#4 green — review it"
-    assert (by["o/q"].state, by["o/q"].verb, by["o/q"].headline) == (
+    assert (by["o/g"].state, by["o/g"].headline) == ("green", "Review PR #4")
+    assert by["o/g"].targets == [(4, "https://github.com/o/g/pull/4")]
+    assert (by["o/q"].state, by["o/q"].headline) == (
         "quiet",
-        "",
-        "nothing open — latest merge #5",
+        "Nothing to do — latest merge PR #5",
     )
 
 

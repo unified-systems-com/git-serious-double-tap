@@ -31,7 +31,8 @@
 .dts-error, .dts-empty { margin: 0.5rem 0 1rem; color: var(--dts-muted); }
 .dts-error { color: var(--dts-fail); }
 /* Level 2 — the order: a row-major grid so the first card is top-left and the eye reads on */
-.dts-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); gap: 1rem; align-items: start; }
+.dts-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(38rem, 1fr)); gap: 1rem 1.2rem; align-items: start; }
+@media (max-width: 44rem) { .dts-strip { grid-template-columns: 1fr; } }
 /* Level 3 — one card, a universe to itself */
 .dts-card { background: var(--dts-surface); border: 1px solid var(--dts-edge); border-left: 4px solid var(--dts-quiet); border-radius: 3px; padding: 0.55rem 0.85rem 0.7rem; min-width: 0; box-shadow: 0 1px 2px rgba(27, 29, 34, 0.06); }
 .dts-card--state-failed { border-left-color: var(--dts-fail); }
@@ -45,22 +46,24 @@
 .dts-crit--critical { color: var(--dts-surface); background: var(--dts-ink); border-color: var(--dts-ink); }
 .dts-crit--high { border-color: var(--dts-muted); }
 .dts-crit--unclassified { color: var(--dts-faint); border-style: dashed; }
-.dts-nudge { margin: 0.45rem 0 0.5rem; padding-bottom: 0.45rem; border-bottom: 1px solid var(--dts-rule); font-size: 0.95rem; display: flex; gap: 0.45rem; align-items: baseline; }
-.dts-nudge-mark { flex: 0 0 1.1rem; text-align: center; font-weight: 700; }
+.dts-nudge { margin: 0.5rem 0 0.55rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--dts-rule); font-size: 1rem; line-height: 1.4; }
+.dts-card--empty .dts-nudge { border-bottom: 0; padding-bottom: 0; margin-bottom: 0.1rem; }
 .dts-verb { font-weight: 700; }
-.dts-nudge--failed .dts-nudge-mark, .dts-nudge--failed .dts-verb { color: var(--dts-fail); }
-.dts-nudge--unobservable .dts-nudge-mark, .dts-nudge--unobservable .dts-verb { color: var(--dts-look); }
-.dts-nudge--pending .dts-nudge-mark, .dts-nudge--pending .dts-verb { color: var(--dts-pend); }
-.dts-nudge--green .dts-nudge-mark, .dts-nudge--green .dts-verb { color: var(--dts-good); }
+.dts-target { font-weight: 600; text-decoration: underline; text-underline-offset: 0.14em; text-decoration-color: var(--dts-edge); }
+.dts-target:hover, .dts-target:focus { text-decoration-color: currentColor; }
+.dts-nudge--failed .dts-verb { color: var(--dts-fail); }
+.dts-nudge--unobservable .dts-verb { color: var(--dts-look); }
+.dts-nudge--pending .dts-verb { color: var(--dts-pend); }
+.dts-nudge--green .dts-verb { color: var(--dts-good); }
 .dts-nudge--quiet { color: var(--dts-muted); }
 .dts-rows { list-style: none; margin: 0; padding: 0; }
-.dts-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.2rem 1rem; align-items: baseline; padding: 0.18rem 0; }
+.dts-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.15rem 1.2rem; padding: 0.3rem 0; }
 .dts-row + .dts-row { border-top: 1px solid var(--dts-rule); }
-.dts-pr { display: flex; gap: 0.45rem; min-width: 0; align-items: baseline; color: var(--dts-ink); }
-.dts-num { color: var(--dts-muted); font-variant-numeric: tabular-nums; font-size: 0.82rem; flex: 0 0 auto; }
-.dts-pr-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.dts-draft { flex: 0 0 auto; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dts-faint); }
-.dts-results { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.15rem 0.7rem; white-space: nowrap; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.dts-pr { display: inline; color: var(--dts-ink); flex: 1 1 24rem; min-width: 0; }
+.dts-num { color: var(--dts-muted); font-variant-numeric: tabular-nums; font-size: 0.82rem; margin-right: 0.4rem; }
+.dts-pr-title { overflow-wrap: anywhere; }
+.dts-draft { margin-left: 0.4rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dts-faint); }
+.dts-results { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.15rem 0.7rem; white-space: nowrap; font-size: 0.82rem; font-variant-numeric: tabular-nums; margin-left: auto; }
 .dts-res { color: var(--dts-muted); }
 .dts-res--pass { color: var(--dts-good); }
 .dts-res--fail { color: var(--dts-fail); font-weight: 600; }

@@ -155,19 +155,33 @@ class Card:
     latest_merge_number: int | None
     #: The workboard reading of the card — what the eye should land on, then what to do.
     state: str = "quiet"  # failed | unobservable | pending | green | quiet
-    verb: str = ""  # Fix | Look | Wait | Review | (none)
-    headline: str = ""  # the self-contained nudge, e.g. "2 checks failing on #83"
+    verb: str = ""  # Fix | Look at | Wait for | Review | (none)
+    lead: str = (
+        ""  # words between the verb and the PR links, e.g. "2 failing checks on"
+    )
+    targets: list[tuple[int, str]] = field(
+        default_factory=list
+    )  # (PR number, where the link goes)
+    tail: str = ""  # words after the links, e.g. "— checks not observable"
+
+    @property
+    def headline(self) -> str:
+        """The nudge as one plain sentence — for tests, tooltips and screen readers."""
+        links = ", ".join(f"PR #{n}" for n, _ in self.targets)
+        return " ".join(
+            part for part in (self.verb, self.lead, links, self.tail) if part
+        )
 
 
 #: Board order of the card states, most actionable first — the legend order and the summary line.
 STATE_ORDER: tuple[str, ...] = ("failed", "unobservable", "pending", "green", "quiet")
 
 STATE_LABELS: dict[str, str] = {
-    "failed": "needs a fix",
-    "unobservable": "cannot be seen",
+    "failed": "to fix",
+    "unobservable": "to look at",
     "pending": "waiting on checks",
-    "green": "green, review it",
-    "quiet": "quiet",
+    "green": "to review",
+    "quiet": "nothing to do",
 }
 
 
@@ -441,12 +455,13 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
     return cards
 
 
-def _numbers(rows: list[PullRow], limit: int = 3) -> str:
-    """``#7, #83`` — the PR numbers a nudge points at, capped so the line stays one line."""
-    shown = [f"#{r.number}" for r in rows[:limit]]
-    if len(rows) > limit:
-        shown.append(f"+{len(rows) - limit} more")
-    return ", ".join(shown)
+def _targets(
+    rows: list[PullRow], *, checks: bool = False, limit: int = 4
+) -> list[tuple[int, str]]:
+    """(number, url) per PR the nudge points at — the PR itself, or its checks tab when the
+    action is about checks. Capped so the line stays a line; the rows below list the rest.
+    """
+    return [(r.number, r.checks_url if checks else r.html_url) for r in rows[:limit]]
 
 
 def _summarize(card: Card) -> None:
@@ -469,33 +484,40 @@ def _summarize(card: Card) -> None:
     if failed:
         n = sum(len(r.failed) for r in failed)
         card.state, card.verb = "failed", "Fix"
-        card.headline = (
-            f"{n} failing check{'s' if n != 1 else ''} on {_numbers(failed)}"
+        card.lead, card.targets = (
+            f"{n} failing check{'s' if n != 1 else ''} on",
+            _targets(failed, checks=True),
         )
     elif unobs:
-        card.state, card.verb = "unobservable", "Look"
-        card.headline = (
-            f"checks not observable on {_numbers(unobs)} — open it on GitHub"
+        card.state, card.verb = "unobservable", "Look at"
+        card.targets, card.tail = (
+            _targets(unobs),
+            "on GitHub — its checks are not observable",
         )
     elif pending:
         n = sum(len(r.pending) for r in pending)
-        card.state, card.verb = "pending", "Wait"
-        card.headline = (
-            f"{n} check{'s' if n != 1 else ''} still running on {_numbers(pending)}"
+        card.state, card.verb = "pending", "Wait for"
+        card.lead, card.targets = f"{n} check{'s' if n != 1 else ''} on", _targets(
+            pending, checks=True
         )
     elif green:
         card.state, card.verb = "green", "Review"
-        card.headline = f"{_numbers(green)} green — review it"
+        card.targets = _targets(green)
     elif card.rows:
-        card.state, card.verb = "quiet", "Look"
-        card.headline = f"no checks reported on {_numbers(card.rows)}"
+        card.state, card.verb = "quiet", "Look at"
+        card.targets, card.tail = _targets(card.rows), "— no checks have reported yet"
     else:
         card.state, card.verb = "quiet", ""
-        card.headline = (
-            f"nothing open — latest merge #{card.latest_merge_number}"
-            if card.latest_merge_number
-            else "nothing open"
-        )
+        if card.latest_merge_number:
+            card.lead = "Nothing to do — latest merge"
+            card.targets = [
+                (
+                    card.latest_merge_number,
+                    f"{card.html_url}/pull/{card.latest_merge_number}",
+                )
+            ]
+        else:
+            card.lead = "Nothing to do"
 
 
 def board_summary(cards: list[Card]) -> list[dict[str, Any]]:

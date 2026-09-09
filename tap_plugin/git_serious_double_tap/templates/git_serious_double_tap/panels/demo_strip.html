@@ -32,20 +32,19 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
   {% else %}
     <div class="dts-strip" role="list" aria-label="Repositories">
       {% for card in cards %}
-        <article class="dts-card dts-card--{{ card.criticality }} dts-card--state-{{ card.state }}" role="listitem" aria-label="{{ card.full_name }}: {{ card.verb }} {{ card.headline }}">
+        <article class="dts-card dts-card--{{ card.criticality }} dts-card--state-{{ card.state }}{% if not card.rows %} dts-card--empty{% endif %}" role="listitem" aria-label="{{ card.full_name }}: {{ card.verb }} {{ card.headline }}">
           <header class="dts-card-head">
             <a class="dts-repo" href="{{ card.page_url }}" title="{{ card.full_name }} — open the repository view">{{ card.name }}</a>
             <span class="dts-crit dts-crit--{{ card.criticality }}" {% if card.criticality_note %}title="{{ card.criticality_note }}"{% endif %}>{{ card.criticality|capfirst }}</span>
           </header>
           <p class="dts-nudge dts-nudge--{{ card.state }}"{% if card.state == "green" %} title="Checks pass on the current head. Approval, conflicts and merge readiness are not established by checks — that decision is yours."{% endif %}>
-            <span class="dts-nudge-mark" aria-hidden="true">{% if card.state == "failed" %}✕{% elif card.state == "unobservable" %}?{% elif card.state == "pending" %}◷{% elif card.state == "green" %}✓{% else %}–{% endif %}</span>
-            {% if card.verb %}<b class="dts-verb">{{ card.verb }}</b>{% endif %} {{ card.headline }}{% if card.state == "quiet" and card.latest_merge_number %} <a class="dts-merge" href="{{ card.html_url }}/pull/{{ card.latest_merge_number }}" target="_blank" rel="noopener" title="Open the latest merge on GitHub">↗</a>{% endif %}
+            {% if card.verb %}<b class="dts-verb">{{ card.verb }}</b>{% endif %}{% if card.lead %} {{ card.lead }}{% endif %}{% for number, url in card.targets %}{% if not forloop.first %},{% endif %} <a class="dts-target" href="{{ url }}" target="_blank" rel="noopener">PR #{{ number }}</a>{% endfor %}{% if card.tail %} {{ card.tail }}{% endif %}
           </p>
           {% if card.rows %}
             <ul class="dts-rows">
               {% for row in card.rows %}
                 <li class="dts-row">
-                  <a class="dts-pr" href="{{ row.html_url }}" target="_blank" rel="noopener" title="#{{ row.number }} {{ row.title }}{% if row.head_sha %} · head {{ row.head_sha|slice:':7' }}{% endif %}" tabindex="0">
+                  <a class="dts-pr" href="{{ row.html_url }}" target="_blank" rel="noopener" title="Open #{{ row.number }} on GitHub{% if row.head_sha %} · head {{ row.head_sha|slice:':7' }}{% endif %}">
                     <span class="dts-num">#{{ row.number }}</span>
                     <span class="dts-pr-title">{{ row.title }}</span>
                     {% if row.is_draft %}<span class="dts-draft">draft</span>{% endif %}
