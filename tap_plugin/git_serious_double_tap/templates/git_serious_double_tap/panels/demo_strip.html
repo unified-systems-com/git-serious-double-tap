@@ -1,0 +1,67 @@
+{% comment %}
+double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbols carry the state
+(✓ passed · ✕ failed · ◷ pending · ⊘ other); colour is a second channel, never the only one.
+{% endcomment %}
+<section class="dts" aria-label="Repositories moving in the last {{ window_hours }} hours">
+  <header class="dts-head">
+    <h2 class="dts-title">Moving in the last {{ window_hours }} hours</h2>
+    {% if collection %}
+      <p class="dts-collection dts-collection--{{ collection.state }}" title="Coverage: GitHub check runs and commit statuses on each pull request's current head, as of the last successful collection. Passing checks do not establish approval, conflicts or merge readiness.">
+        {% if collection.state == "fresh" %}●{% elif collection.state == "stale" %}◔{% elif collection.state == "failed" %}✕{% else %}○{% endif %}
+        {{ collection.text }}
+        {% if collection.last_success %}<time datetime="{{ collection.last_success|date:'c' }}">({{ collection.last_success|date:"H:i" }} UTC)</time>{% endif %}
+      </p>
+    {% endif %}
+  </header>
+
+  {% if strip_error %}
+    <p class="dts-error">{{ strip_error }}</p>
+  {% elif not cards %}
+    <p class="dts-empty">
+      {% if collection and collection.state == "never" %}Nothing to show until a collection succeeds.{% else %}No repository had a pull request opened, pushed, merged or building in the last {{ window_hours }} hours.{% endif %}
+    </p>
+  {% else %}
+    <div class="dts-strip" role="list">
+      {% for card in cards %}
+        <article class="dts-card dts-card--{{ card.criticality }}" role="listitem">
+          <header class="dts-card-head">
+            <a class="dts-repo" href="{{ card.page_url }}" title="{{ card.full_name }} — open the repository view">{{ card.name }}</a>
+            <span class="dts-crit dts-crit--{{ card.criticality }}" {% if card.criticality_note %}title="{{ card.criticality_note }}"{% endif %}>{{ card.criticality|capfirst }}</span>
+          </header>
+          {% if card.rows %}
+            <ul class="dts-rows">
+              {% for row in card.rows %}
+                <li class="dts-row">
+                  <a class="dts-pr" href="{{ row.html_url }}" target="_blank" rel="noopener" title="#{{ row.number }} {{ row.title }}{% if row.head_sha %} · head {{ row.head_sha|slice:':7' }}{% endif %}" tabindex="0">
+                    <span class="dts-num">#{{ row.number }}</span>
+                    <span class="dts-pr-title">{{ row.title }}</span>
+                    {% if row.is_draft %}<span class="dts-draft" title="Draft pull request">draft</span>{% endif %}
+                  </a>
+                  <span class="dts-results">
+                    {% if row.checks_state == "unobservable" %}
+                      <span class="dts-res dts-res--unobs" title="GitHub refused the check rollup for this head">? checks not observable</span>
+                    {% elif row.checks_state == "none" %}
+                      <span class="dts-res dts-res--none" title="No check run or status has reported on this head">– no checks reported</span>
+                    {% else %}
+                      {% if row.passed %}<a class="dts-res dts-res--pass" href="{{ row.checks_url }}" target="_blank" rel="noopener" title="{{ row.passed }} distinct check{{ row.passed|pluralize }} passed on head {{ row.head_sha|slice:':7' }}">✓ {{ row.passed }} passed</a>{% endif %}
+                      {% for c in row.failed %}<a class="dts-res dts-res--fail" href="{{ c.url }}" target="_blank" rel="noopener" title="{{ c.app }}: {{ c.name }} — {{ c.detail }}">✕ {{ c.name }}</a>{% endfor %}
+                      {% for c in row.pending %}<a class="dts-res dts-res--pend" href="{{ c.url }}" target="_blank" rel="noopener" title="{{ c.app }}: {{ c.name }} — {{ c.detail }}">◷ {{ c.name }}</a>{% endfor %}
+                      {% for c in row.other %}<a class="dts-res dts-res--other" href="{{ c.url }}" target="_blank" rel="noopener" title="{{ c.app }}: {{ c.name }} — {{ c.detail }}">⊘ {{ c.name }} ({{ c.detail }})</a>{% endfor %}
+                      {% if not row.passed and not row.failed and not row.pending and not row.other %}<span class="dts-res dts-res--none">– no checks reported</span>{% endif %}
+                    {% endif %}
+                  </span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="dts-none">No open PRs{% if card.latest_merge_number %} · latest merge <a href="{{ card.html_url }}/pull/{{ card.latest_merge_number }}" target="_blank" rel="noopener">#{{ card.latest_merge_number }}</a>{% endif %}</p>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <nav class="dts-nav" aria-label="git-serious views">
+    {% for item in navigation %}<a class="dts-nav-link" href="{{ item.href }}" title="{{ item.hint }}">{{ item.label }}</a>{% endfor %}
+  </nav>
+</section>

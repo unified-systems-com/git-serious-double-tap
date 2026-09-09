@@ -5,7 +5,7 @@
 - **Slug:** `git_serious_double_tap` (dist `git-serious-double-tap-tap`, namespace `tap_plugin.git_serious_double_tap`)
 - **Display name:** git-serious double-tap
 - **Initial page route:** `/double-tap`
-- **Initial panel types:** none of its own — v0 mounts git_serious's standard panels by edge
+- **Panel types:** `double-tap-demo-strip` (v0.2.0, incubated here — see [Demo Strip](#demo-strip)); everything else is git_serious's, mounted by edge
 - **Initial page variables:** none
 
 ## Philosophy
@@ -24,7 +24,14 @@ one product-build sessions already follow: repeatable capability goes down, conf
 
 **In scope for v0:** a home page that composes existing git-serious panels by edge alone, proving
 the instance-configuration shape works with zero code. **Out of scope:** models, edges, collectors,
-panel types, and any page a second git-serious instance would also want.
+and any page a second git-serious instance would also want.
+
+**v0.2.0 amendment (2026-09-08, ruled by George):** a panel type MAY be incubated here when it has
+no precedent anywhere in the system and the instance is the only place it can be made real —
+the first card-level panel is the case. The incubator rule: make it work here against one real
+organization, then lift the repeatable mechanism into tap_web (a card panel type) and leave the
+instance-specific parts (the window, the criticality property) behind. An incubated panel is a
+loan, not a residence; its spec section names the graduation issue.
 
 ## Goals
 
@@ -33,14 +40,15 @@ panel types, and any page a second git-serious instance would also want.
 | 1 | Instance configuration lives in a plugin | The unified-systems-com pages are a versioned, installable plugin, not hand edits on one grid. |
 | 2 | Compose, never copy | Pages here mount product panels by `USES_PANEL` edge; no panel, search or template is duplicated from git_serious. |
 | 3 | Push repeatable capability down | Anything a second instance would want is built in git_serious or github_core, then used from here. |
-| 4 | Zero code | v0 ships a manifest and GRIFT only; the plugin proves the shape before it earns any Python. |
+| 4 | Zero code first | v0.1.0 shipped a manifest and GRIFT only, proving the shape before any Python. Python arrives only under the incubator rule (Philosophy), never as a permanent home. |
 
 ## Requirements
 
 | RID | Name | Status | Notes |
 | --- | --- | :---: | --- |
 | req-git-serious-double-tap-scope | [Instance-Only Scope](#instance-only-scope) | Implemented | Manifest + GRIFT only; install dep on git_serious; no models, edges, collectors or panel types |
-| req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` mounts git-serious's status wall, not-observed and gates panels by edge |
+| req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` opens with the demo strip, then mounts git-serious's status wall, not-observed and gates panels by edge |
+| req-git-serious-double-tap-page-strip | [Demo Strip](#demo-strip) | Implemented | One card per repository that moved in the last 24 hours: its open PRs with the check results of each PR's current head; collection freshness said out loud; navigation to the four git-serious views |
 | req-git-serious-double-tap-nongoals | [v0 Non-Goals](#v0-non-goals) | Implemented | What this plugin refuses to grow into |
 
 ### Instance-Only Scope
@@ -71,8 +79,9 @@ RID: `req-git-serious-double-tap-page-home`
 
 Status: `Implemented`
 
-Route `/double-tap`, nav weight 110 (after git-serious's own pages). The page mounts three panels
-git_serious ships, by `USES_PANEL` edge whose target is the panel entity git_serious seeds:
+Route `/double-tap`, nav weight 110 (after git-serious's own pages). Row 1 is the plugin's own
+[demo strip](#demo-strip). Below it the page mounts three panels git_serious ships, by
+`USES_PANEL` edge whose target is the panel entity git_serious seeds:
 
 | Slot | Panel (git_serious) | Question it answers |
 | --- | --- | --- |
@@ -80,12 +89,14 @@ git_serious ships, by `USES_PANEL` edge whose target is the panel entity git_ser
 | `not-observed` | Not observed in the collected window | Which workflows could we not say anything about? |
 | `gates` | The gates | What gates each default branch, and what can we not see? |
 
-The page carries no panel, search, projection or template of its own. It is the running example's
-first screen and the place target-3 pages (map unified-systems) attach as they are found.
+The page carries no search or projection of its own; its one panel is the incubated strip. It is
+the running example's first screen and the place target-3 pages (map unified-systems) attach as
+they are found.
 
 #### Implementation
 
-`tap_plugin/git_serious_double_tap/grift/home.grift.json` — one batch: the page node and three
+`tap_plugin/git_serious_double_tap/grift/home.grift.json` — one batch (v0.2.0): the page node, the
+strip panel node (`01a08375-96e8-77ea-bf33-1d07f1ed54cc`, slug `double-tap-demo-strip`) and four
 `USES_PANEL` edges. Panel targets: status wall `01a0632f-38b6-7440-9de9-3d5a3dadeb2a`, not-observed
 `01a0632f-38b6-7440-9de9-3d5ba8eadfc4`, gates `01a067e1-8266-71e1-bb86-fba4947ee6a2` (from
 git_serious's `landing.grift.json`; ids are stable across its re-publishes).
@@ -95,7 +106,80 @@ git_serious's `landing.grift.json`; ids are stable across its re-publishes).
 | ACID | Title | Status | Description | Notes |
 | --- | --- | :---: | --- | --- |
 | req-git-serious-double-tap-page-home-1 | Route Serves | Implemented | `GET /double-tap` on a booted git_serious instance with this plugin seeded returns 200 and renders the three slots. | |
-| req-git-serious-double-tap-page-home-2 | Composition Only | Implemented | The bundle's only node is the page; its edges target git_serious-seeded panels, and the import reports no dangling edge when git_serious seeded first. | |
+| req-git-serious-double-tap-page-home-2 | Composition Plus One | Implemented | The bundle's nodes are the page and the strip panel; every other edge targets a git_serious-seeded panel, and the import reports no dangling edge when git_serious seeded first. | v0.1.0 read "only node is the page"; superseded by the incubator rule. |
+
+### Demo Strip
+----
+RID: `req-git-serious-double-tap-page-strip`
+
+Status: `Implemented`
+
+Issue: unified-systems-com/git-serious-double-tap#6 (Codex brief 2026-09-08, cut by George to
+"strip only, fixed 24-hour window, no pins"). Graduation issue: the card mechanism into tap_web —
+filed when the second card panel appears, not before.
+
+The first screen of the running example: which repositories are moving toward the demo, their
+open pull requests, and which checks pass or fail on each PR's **current head**. One horizontal
+row of cards, scrolling sideways when wider than the page. Below the strip, links to the four
+git-serious views (organization, repository machinery, the gate, the status wall as drill-down).
+
+**Selection** — a repository is a card when, in the last 24 hours, one of its pull requests was
+opened or merged, its head commit was committed (the `PROPOSES_COMMIT` join onto git_core's
+commit, when that commit was observed), or a check on its head is still queued or running.
+GitHub's `updated_at` — comments, labels, metadata edits — never qualifies. Reopen is not
+observable on the collected node and is not counted.
+
+**Order** — the organization's `criticality` custom property (`critical` > `high` > `medium` >
+`low`), then most recent qualifying movement, then full name. A property that is unset, outside
+the allowed values, or whose observability is `unobservable` renders the word *unclassified* with
+the reason on hover — never blank, and the three causes stay distinguishable.
+
+**Rows** — every open PR of a qualifying repository, number ascending, drafts marked. Per row:
+the count of distinct passing checks, then failed-check names, then queued/running names, then
+anything else (skipped, cancelled, neutral, an unknown word) compactly WITH its word. Distinct
+means one result per (producing app, check name), keeping the highest `check_run_id`, so a rerun
+replaces the run it re-ran and never counts beside it; two producers with the same check name stay
+two checks. Results are the rollup of the PR's `head_sha` at collection; the collector replaces
+head and checks together on every observation, so an old green cannot survive a new push.
+
+**Three states** — `checks_observability = unobservable` reads *checks not observable*; an
+observed head with no contexts reads *no checks reported*; neither is a count and neither is
+green. A repository that qualified only by a merge reads *No open PRs · latest merge #n*.
+
+**Collection line** — the newest github_core collection job: *collected N min ago* when the last
+success is within 30 minutes; *(stale)* beyond it; *the latest attempt FAILED* when a failure
+followed the last success; *no successful collection yet* when none has. The 30-minute threshold
+is a placeholder until the cadence is declared where the panel can read it; the cadence itself is
+an operational change outside this requirement. The coverage sentence on hover names what the
+results are: GitHub check runs and commit statuses on the current head, which do not establish
+approval, conflicts or merge readiness.
+
+**Links** — repository name → github_core's repository page (`/samsite/repo?repository_entity_id=`);
+PR number/title → GitHub; the passing count → the PR's checks tab; each failed or pending name →
+that check's own URL. Text and symbols (✓ ✕ ◷ ⊘) carry state alongside colour.
+
+#### Implementation
+
+`tap_plugin/git_serious_double_tap/panels/demo_strip/__init__.py` — panel type
+`double-tap-demo-strip` (registered in `apps.py`), reads through `execute_gryphon_raw` over four
+declared queries (repositories, pull requests, the `PROPOSES_COMMIT` join, collection jobs) and
+folds them in pure functions (`build_cards`, `dedupe_checks`, `classify_check`,
+`collection_status`); template `templates/git_serious_double_tap/panels/demo_strip.html`; styles
+`static/git_serious_double_tap/css/demo_strip.css`. No github_core or git_core Python is imported —
+`depends_on` stays empty; the queries name those plugins' node types, a data dependency the boot
+record already orders. Data contract: github_core ≥ the release that ships `pull_request`
+(github-core#82 / PR# 83) and `custom_properties` (PR# 81).
+
+#### Acceptance Criteria
+
+| ACID | Title | Status | Description | Notes |
+| --- | --- | :---: | --- | --- |
+| req-git-serious-double-tap-page-strip-1 | Movement Selects | Implemented | Opened, merged, head-commit date and a running check qualify; `updated_at` alone does not; a PR without a repository node on the grid is not a card. | `test_demo_strip.py::test_repository_qualifies_by_opened_merged_or_head_commit_only`, `test_running_check_counts_as_movement_now`, `test_pull_request_without_a_repository_node_is_not_a_card` |
+| req-git-serious-double-tap-page-strip-2 | Criticality Orders | Implemented | critical > high > medium > low > unclassified, then recency, then name; unset, out-of-range and unobservable all read unclassified with distinct notes. | `test_criticality_orders_then_recency_then_name` |
+| req-git-serious-double-tap-page-strip-3 | Current Head, Reruns Collapsed | Implemented | Distinct (app, name) keeps the highest `check_run_id`; passed is a count, failed then pending are names, other keeps its word. | `test_rerun_replaces_the_run_it_reran`, `test_row_buckets_passed_failed_pending_other`, `test_unknown_words_are_kept_not_dropped` |
+| req-git-serious-double-tap-page-strip-4 | Three Observability States | Implemented | unobservable / none / observed render distinct text and none reads green; a merge-only repository shows the latest merge number. | `test_check_observability_three_states_never_read_green`, `test_merged_only_repository_shows_latest_merge_and_no_rows` |
+| req-git-serious-double-tap-page-strip-5 | Freshness Said | Implemented | never / fresh / stale / failed from the github_core collection jobs only; never-succeeded outranks failed. | `test_collection_line_four_states`, `test_collection_line_ignores_other_collectors` |
+| req-git-serious-double-tap-page-strip-6 | Live | Implemented | On the 8010 grid after a collection (2026-09-08): five cards, critical → high → unclassified, PR rows with passed counts and pending names, collection line fresh. | Observed by hand; a boot-and-test lane for this repo is #4. |
 
 ### v0 Non-Goals
 ----
@@ -103,8 +187,9 @@ RID: `req-git-serious-double-tap-nongoals`
 
 Status: `Implemented`
 
-- No models, edges, collectors or panel types — if one is needed, it is built in git_serious or
-  github_core and used from here.
+- No models, edges or collectors — if one is needed, it is built in git_serious or github_core
+  and used from here. A panel type only under the incubator rule (Philosophy), with its
+  graduation named in its spec section.
 - No boot record of its own: the instance boots git-serious's record with this plugin added to
   the install and population sections.
 - No second-instance generality: a page that any git-serious user would want is a git_serious page.
@@ -113,4 +198,4 @@ Status: `Implemented`
 
 | ACID | Title | Status | Description | Notes |
 | --- | --- | :---: | --- | --- |
-| req-git-serious-double-tap-nongoals-1 | Stays Thin | Implemented | The runtime package contains no `models/`, `edges/`, `collectors/` or `templates/` directory. | Reviewed on every PR. |
+| req-git-serious-double-tap-nongoals-1 | Stays Thin | Implemented | The runtime package contains no `models/`, `edges/` or `collectors/` directory; `panels/` and `templates/` hold only incubated panels whose spec sections name a graduation. | Reviewed on every PR. v0.1.0 also forbade `templates/`; relaxed 2026-09-08. |
