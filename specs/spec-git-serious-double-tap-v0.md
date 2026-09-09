@@ -243,8 +243,9 @@ filed when the second card panel appears, not before.
 
 The first screen of the running example: which repositories are moving toward the demo, their
 open pull requests, and which checks pass or fail on each PR's **current head**. Cards wrap like
-columns of text — nothing scrolls sideways (v0.3.0; v0.2.0 was one scrolling row). Below the cards,
-links to the four views (organization, repository machinery, the gate, the status wall page).
+columns of text — nothing scrolls sideways (v0.3.0; v0.2.0 was one scrolling row). Nothing below the
+cards: the strip is the board, not a site map — the views are the top navigation's (v0.4.1, #17
+dropped the four standalone links).
 
 **A workboard, not a dashboard** (v0.4.0, George 2026-09-09): the reader is here to perform work,
 so the board presents opportunities for action. Three levels for the eye, in the order the viz
@@ -309,7 +310,7 @@ next pass argues with the principles rather than with taste. Prior-art search 20
 | Visual information seeking (Shneiderman) & dashboards (Few) | Overview first, zoom and filter, details on demand; one screen, glanceable, simplicity. | Board → card → rows → links to GitHub and the status wall page are the four zoom levels; the strip stays one screen. |
 | Pull work (Kanban; Anderson) | Make work visible, limit work in progress, pull the next item from the top. | Cards are the visible work; criticality-then-recency is the pull order; a WIP limit and an *acknowledged* state are the open questions. |
 | Signifiers & heuristics (Norman; Nielsen) | Visibility of system status; match the real world; signifiers say what is possible. | The collection line is system status; the nudge is written in the reader's verbs; links look like links, results look like results. |
-| Motor and choice cost (Fitts; Hick) | Fewer, larger targets; fewer choices per decision. | One primary link per row; one verb per card; four navigation links, not a menu. |
+| Motor and choice cost (Fitts; Hick) | Fewer, larger targets; fewer choices per decision. | One primary link per row; one verb per card; no navigation menu of its own (#17). |
 
 Open questions this rationale surfaces (their own issues when picked up): order within a
 criticality by actionability rather than recency; a work-in-progress cap on the board; an

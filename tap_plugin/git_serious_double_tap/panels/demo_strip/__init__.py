@@ -64,29 +64,6 @@ _PENDING = frozenset(
 )
 
 #: The four git-serious views the strip navigates to (slugs git_serious seeds).
-NAVIGATION: list[dict[str, str]] = [
-    {
-        "label": "Organization",
-        "href": "/git-serious/org",
-        "hint": "The account and its repositories",
-    },
-    {
-        "label": "Repository machinery",
-        "href": "/git-serious",
-        "hint": "Workflows, refs and runners per repository",
-    },
-    {
-        "label": "The gate",
-        "href": "/git-serious/gate",
-        "hint": "What must be true for a commit to land",
-    },
-    {
-        "label": "Status wall",
-        "href": "/double-tap/status-wall",
-        "hint": "Every workflow's latest run, and the ones not observed — the drill-down",
-    },
-]
-
 #: git-serious's per-repository page (git-serious-tap#56): identity row, machinery graph, open PRs
 #: with the check rollup, the status wall and not-observed workflows filtered to the repository.
 #: Generic and not in the top nav — the card is the intended way in. Keyed by `owner/name`.
@@ -222,7 +199,6 @@ class DemoStripPanelType:
                 "strip_error": "Strip reads failed — see the server log ([6aa9]).",
                 "cards": [],
                 "collection": None,
-                "navigation": NAVIGATION,
                 "window_hours": int(WINDOW.total_seconds() // 3600),
                 "refresh_seconds": refresh_seconds,
             }
@@ -233,7 +209,6 @@ class DemoStripPanelType:
             "cards": cards,
             "summary": board_summary(cards),
             "collection": collection,
-            "navigation": NAVIGATION,
             "window_hours": int(WINDOW.total_seconds() // 3600),
             "refresh_seconds": refresh_seconds,
         }
