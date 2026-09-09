@@ -92,12 +92,12 @@
           "entity": {
             "entity_id": "01a087fa-f1ab-7175-9952-7d7daf8fe007",
             "entity_type": "edge",
-            "name": "Page USES_PANEL machinery (git-serious's panel, repo pinned to unified-systems-com/tap)",
+            "name": "tap page USES_PANEL machinery (double-tap tap lanes panel)",
             "dimensions": {}
           },
           "edge": {
             "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
-            "to_entity_id": "01a08766-f51c-72d0-a9f1-ae8227d07bbf",
+            "to_entity_id": "01a08804-4b2c-766d-9dec-9cb0630013cf",
             "edge_type": "USES_PANEL",
             "properties": {
               "hotlink": {

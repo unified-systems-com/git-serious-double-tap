@@ -15,6 +15,7 @@ status = "compatible"
 
 [grift]
 home = "grift/home.grift.json"
+tap_machinery = "grift/tap-machinery.grift.json"
 tap_repository = "grift/tap-repository.grift.json"
 
 # In-package boot record (req-boot-bootstrap-records-in-package): the unified-systems-com
