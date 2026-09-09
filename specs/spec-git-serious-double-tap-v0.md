@@ -48,7 +48,7 @@ loan, not a residence; its spec section names the graduation issue.
 | --- | --- | :---: | --- |
 | req-git-serious-double-tap-scope | [Instance-Only Scope](#instance-only-scope) | Implemented | Manifest + GRIFT only; install dep on git_serious; no models, edges, collectors or panel types |
 | req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` is the demo strip alone; `/double-tap/status-wall` mounts git-serious's status wall and not-observed panels by edge |
-| req-git-serious-double-tap-page-tap | [The tap Page](#the-tap-page) | Implemented | `/double-tap/tap`: the generic repository page's structure with every search hardcoded to unified-systems-com/tap — the instance's one scoped page; the machinery scene is its own so the visualization can diverge |
+| req-git-serious-double-tap-page-tap | [The tap Page](#the-tap-page) | In Development | `/double-tap/tap`: one page node mounting git-serious's shared repository panels by id, each edge pinning `repo=unified-systems-com/tap` as a fixed input (tap#359) — the instance's one scoped page, owning no panel of its own |
 | req-git-serious-double-tap-page-strip | [Demo Strip](#demo-strip) | Implemented | One card per repository that moved in the last 24 hours: its open PRs with the check results of each PR's current head; collection freshness said out loud; navigation to the four git-serious views |
 | req-git-serious-double-tap-nongoals | [v0 Non-Goals](#v0-non-goals) | Implemented | What this plugin refuses to grow into |
 
@@ -122,21 +122,26 @@ every search takes `repo` as a required input. The instance is permitted what th
 **one page with hardcoded scope**. `/double-tap/tap` is that page for unified-systems-com/tap, the
 repository that builds TAP.
 
-**Structure** — the same five rows as the generic page, in the same order: identity (the repository
-node with its custom-property values and observability words), machinery (github_core's machinery
-projection over this page's own scene searches), open pull requests with the check rollup, the
-status wall filtered to the repository, and its not-observed workflows. The two pages read alike
-today on purpose; a reader who knows one knows the other.
+**Structure** — the same five rows as the generic page, in the same order: identity, machinery,
+open pull requests, the status wall, the not-observed workflows. They are not copies: they are the
+generic page's panel nodes (git-serious repository bundle) and the landing's wall and not-observed
+panel nodes, mounted by id. A reader who knows one page knows the other because it IS the other,
+narrowed.
 
-**Scope** — every search is a copy of the generic one with the literal `"unified-systems-com/tap"`
-where the generic search reads `$repo`, and `"OPEN"` where it reads `$state`; no `input_schema`,
-no page variables. `?repo=` and `?state=` on this page are ignored, not honoured.
+**Scope** — each `USES_PANEL` edge carries `properties.inputs = {"repo": "unified-systems-com/tap"}`
+(tap#359): when the page builds a slot's panel address it lays that fixed input over the URL's
+query string, so the panel's searches receive `repo` exactly as they would from
+`?repo=unified-systems-com/tap` on the generic page. The fixed input wins: `?repo=` on this page is
+ignored, not honoured. `?state=` passes through as on the generic page. The bundle declares no
+search and no `$`; the scope lives on five edges, in one literal each — the one place the instance
+is allowed to be specific (ruled by George 2026-09-09: repository views are one panel, consumed
+through searches and page/panel variables, never copied).
 
-**Divergence** — the machinery scene (its three searches and the graph panel) belongs to this
-bundle, so the visualization can be teased out into something tap-specific without touching the
-product's generic scene. That is the first thing expected to change, and it is why the copy exists
-rather than a page variable with a default. The cost is stated in the batch description: the copy
-is at PR# 58's revision and does not follow later changes to the generic page.
+**Divergence** — with no copied searches the seam moves to the projection: a tap-specific machinery
+view is a double-tap-owned graph panel (its own `USES_PROJECTION`, sharing git_serious's scene
+searches by id) swapped into the `machinery` slot — one panel the page would then own, the other
+four stay shared. Until that panel exists the slot mounts git-serious's machinery panel. What the
+v0.1.0 copy cost — polish landing on one page and not the other — is what this shape removes.
 
 **Card link** — the tap card on /double-tap opens this page; every other card opens the generic page
 (`REPO_PAGE_OVERRIDES` in the strip panel — the one place a card link is allowed to be specific).
@@ -144,19 +149,20 @@ is at PR# 58's revision and does not follow later changes to the generic page.
 #### Implementation
 
 `tap_plugin/git_serious_double_tap/grift/tap-repository.grift.json` — one batch: the page node
-(`/double-tap/tap`, nav weight 112), five panels (`double-tap-tap-identity`, `-machinery`, `-pulls`,
-`-status-wall`, `-not-observed`), six searches, thirteen edges (`USES_PANEL`, `USES_SEARCH`, and one
-`USES_PROJECTION` onto github_core's machinery projection, an out-of-file endpoint). Registered in
-the manifest's `[grift]` table as `tap_repository`. Generated from the generic bundle by
-substitution, then owned here.
+(`/double-tap/tap`, nav weight 112) and five `USES_PANEL` edges whose targets are out-of-file
+endpoints — git-serious's identity, machinery and open-pull-requests panels (repository bundle
+`01a08766-…`) and the landing's status wall and not-observed panels (`01a0632f-…`) — each with
+`properties.inputs.repo`. Registered in the manifest's `[grift]` table as `tap_repository`. v0.1.0
+carried five panels, six searches and thirteen edges as copies; v0.2.0 retired them
+(`--force-batches … --sweep-strict`).
 
 #### Acceptance Criteria
 
 | ACID | Title | Status | Description | Notes |
 | --- | --- | :---: | --- | --- |
-| req-git-serious-double-tap-page-tap-1 | Same Structure | Implemented | `GET /double-tap/tap` renders the five slots in the generic page's order and every panel returns rows for unified-systems-com/tap. | Observed 2026-09-09 on the 8010 grid: identity 1 node, pulls, status wall, not-observed all populated, machinery scene drawn. |
-| req-git-serious-double-tap-page-tap-2 | Hardcoded Scope | Implemented | No search in the bundle declares an `input_schema`; no query contains `$`; the page carries no `input_vars`. | Guarded by generation; the bundle is reviewed on every change. |
-| req-git-serious-double-tap-page-tap-3 | Own Scene | Implemented | The machinery panel's three scene searches are this bundle's entities, not git_serious's; only the projection is shared. | The divergence seam. |
+| req-git-serious-double-tap-page-tap-1 | Same Structure | In Development | `GET /double-tap/tap` renders the five slots in the generic page's order and every panel returns rows for unified-systems-com/tap; each slot's fragment URL carries the git-serious panel's entity id (the same id the generic page mounts) with `repo=unified-systems-com%2Ftap`. | v0.1.0 observed 2026-09-09 with copies; v0.2.0 waits on tap#359 reaching the core. |
+| req-git-serious-double-tap-page-tap-2 | Pinned Scope | In Development | The bundle declares no search and no panel; every `USES_PANEL` edge carries `inputs.repo = "unified-systems-com/tap"`; `?repo=other` on the page changes nothing (the fixed input wins). | The one literal per edge is the instance's privilege. |
+| req-git-serious-double-tap-page-tap-3 | Divergence Seam Is The Projection | Proposed | A tap-specific machinery view arrives as a double-tap-owned graph panel with its own `USES_PROJECTION` over git_serious's scene searches, swapped into the `machinery` slot; nothing else is copied. | Not built; the slot mounts git-serious's machinery panel today. |
 | req-git-serious-double-tap-page-tap-4 | Card Link | Implemented | The tap card's repository link is `/double-tap/tap`; any other repository's is the generic page. | `test_card_links_to_the_git_serious_repository_page` |
 
 ### Demo Strip
