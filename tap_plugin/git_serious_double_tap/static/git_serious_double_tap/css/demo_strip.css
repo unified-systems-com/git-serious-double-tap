@@ -65,16 +65,15 @@
 .dts-draft { margin-left: 0.4rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dts-faint); }
 .dts-results { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.15rem 0.7rem; white-space: nowrap; font-size: 0.82rem; font-variant-numeric: tabular-nums; margin-left: auto; }
 .dts-res { color: var(--dts-muted); }
-.dts-res--pass { color: var(--dts-good); }
-.dts-res--fail { color: var(--dts-fail); font-weight: 600; }
-.dts-res--pend { color: var(--dts-pend); }
-.dts-res--other { color: var(--dts-faint); }
+/* The results are anchors, and `.dts a` (0,1,1) would out-rank a lone state class (0,1,0) — so the
+   state rules carry the anchor too, and the colour is observed, not just declared (#16). */
+.dts-res--pass, .dts a.dts-res--pass { color: var(--dts-good); }
+.dts-res--fail, .dts a.dts-res--fail { color: var(--dts-fail); font-weight: 600; }
+.dts-res--pend, .dts a.dts-res--pend { color: var(--dts-pend); }
+.dts-res--other, .dts a.dts-res--other { color: var(--dts-faint); }
 .dts-res--unobs { color: var(--dts-look); font-style: italic; }
 .dts-res--none { color: var(--dts-faint); font-style: italic; }
 .dts-merge { font-size: 0.85rem; }
-.dts-nav { display: flex; gap: 0 1.4rem; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 0.5rem; border-top: 1px solid var(--dts-edge); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
-.dts-nav-link { color: var(--dts-muted); }
-.dts-nav-link:hover { color: var(--dts-ink); }
 @media (prefers-color-scheme: dark) {
   .dts { --dts-ink: #e8e8e3; --dts-muted: #a5a8b0; --dts-faint: #6f737c; --dts-ground: #17181b; --dts-surface: #202226; --dts-edge: #33363c; --dts-rule: #2b2e33;
          --dts-link: #7fb0ea; --dts-fail: #ff7b6e; --dts-pend: #e0a53c; --dts-good: #5fcf7a; --dts-quiet: #44474d; --dts-look: #b79cf0; }
