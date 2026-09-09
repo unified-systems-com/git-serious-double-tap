@@ -190,6 +190,11 @@ def test_merged_only_repository_shows_latest_merge_and_no_rows() -> None:
     assert card.latest_merge_number == 7
 
 
+def test_card_links_to_the_git_serious_repository_page() -> None:
+    card = build_cards(_env([_repo("o/r")], [_pr("o/r", 1)]), now=NOW)[0]
+    assert card.page_url == "/git-serious/repository?repo=o/r"
+
+
 def test_pull_request_without_a_repository_node_is_not_a_card() -> None:
     assert build_cards(_env([], [_pr("o/ghost", 1)]), now=NOW) == []
 

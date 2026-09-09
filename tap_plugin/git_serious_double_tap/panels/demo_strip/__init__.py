@@ -30,6 +30,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, ClassVar
+from urllib.parse import quote
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
@@ -86,9 +87,11 @@ NAVIGATION: list[dict[str, str]] = [
     },
 ]
 
-#: github_core's repository landing page and the page variable it resolves (panels/_common.py).
-REPO_PAGE_SLUG = "/samsite/repo"
-REPO_PAGE_VAR = "repository_entity_id"
+#: git-serious's per-repository page (git-serious-tap#56): identity row, machinery graph, open PRs
+#: with the check rollup, the status wall and not-observed workflows filtered to the repository.
+#: Generic and not in the top nav — the card is the intended way in. Keyed by `owner/name`.
+REPO_PAGE_SLUG = "/git-serious/repository"
+REPO_PAGE_VAR = "repo"
 
 # The declared reads. Node-only scans and one edge pattern, kept separate because the executor
 # will not mix them in one query. The collection-job scan is the readiness signal: the newest
@@ -436,7 +439,7 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
                 -1
             ],  # the org is the whole strip; the card says the repository
             html_url=str(repo.get("html_url") or ""),
-            page_url=f"{REPO_PAGE_SLUG}?{REPO_PAGE_VAR}={repo.get('entity_id') or ''}",
+            page_url=f"{REPO_PAGE_SLUG}?{REPO_PAGE_VAR}={quote(full_name, safe='/')}",
             criticality=criticality,
             criticality_note=note,
             last_activity=max(qualifying),
