@@ -5,6 +5,12 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
 <section class="dts" aria-label="Repositories moving in the last {{ window_hours }} hours"{% if refresh_seconds %} data-dts-refresh="{{ refresh_seconds }}"{% endif %}>
   <header class="dts-head">
     <h2 class="dts-title">Moving in the last {{ window_hours }} hours</h2>
+    {% if summary %}
+      <p class="dts-summary" aria-label="Board summary">
+        <span class="dts-summary-total">{{ cards|length }} repositor{{ cards|length|pluralize:"y,ies" }}</span>
+        {% for item in summary %}<span class="dts-summary-item dts-summary-item--{{ item.state }}"><b>{{ item.count }}</b> {{ item.label }}</span>{% endfor %}
+      </p>
+    {% endif %}
     {% if collection %}
       <p class="dts-collection dts-collection--{{ collection.state }}" title="Coverage: GitHub check runs and commit statuses on each pull request's current head, as of the last successful collection. Passing checks do not establish approval, conflicts or merge readiness.">
         {% if collection.state == "fresh" %}●{% elif collection.state == "stale" %}◔{% elif collection.state == "failed" %}✕{% else %}○{% endif %}
@@ -26,11 +32,15 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
   {% else %}
     <div class="dts-strip" role="list" aria-label="Repositories">
       {% for card in cards %}
-        <article class="dts-card dts-card--{{ card.criticality }}" role="listitem">
+        <article class="dts-card dts-card--{{ card.criticality }} dts-card--state-{{ card.state }}" role="listitem" aria-label="{{ card.full_name }}: {{ card.verb }} {{ card.headline }}">
           <header class="dts-card-head">
             <a class="dts-repo" href="{{ card.page_url }}" title="{{ card.full_name }} — open the repository view">{{ card.name }}</a>
             <span class="dts-crit dts-crit--{{ card.criticality }}" {% if card.criticality_note %}title="{{ card.criticality_note }}"{% endif %}>{{ card.criticality|capfirst }}</span>
           </header>
+          <p class="dts-nudge dts-nudge--{{ card.state }}"{% if card.state == "green" %} title="Checks pass on the current head. Approval, conflicts and merge readiness are not established by checks — that decision is yours."{% endif %}>
+            <span class="dts-nudge-mark" aria-hidden="true">{% if card.state == "failed" %}✕{% elif card.state == "unobservable" %}?{% elif card.state == "pending" %}◷{% elif card.state == "green" %}✓{% else %}–{% endif %}</span>
+            {% if card.verb %}<b class="dts-verb">{{ card.verb }}</b>{% endif %} {{ card.headline }}{% if card.state == "quiet" and card.latest_merge_number %} <a class="dts-merge" href="{{ card.html_url }}/pull/{{ card.latest_merge_number }}" target="_blank" rel="noopener" title="Open the latest merge on GitHub">↗</a>{% endif %}
+          </p>
           {% if card.rows %}
             <ul class="dts-rows">
               {% for row in card.rows %}
@@ -56,8 +66,6 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
                 </li>
               {% endfor %}
             </ul>
-          {% else %}
-            <p class="dts-none">No open PRs{% if card.latest_merge_number %} · latest merge <a href="{{ card.html_url }}/pull/{{ card.latest_merge_number }}" target="_blank" rel="noopener">#{{ card.latest_merge_number }}</a>{% endif %}</p>
           {% endif %}
         </article>
       {% endfor %}

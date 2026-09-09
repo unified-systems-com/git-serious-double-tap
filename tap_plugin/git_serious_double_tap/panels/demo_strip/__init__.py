@@ -153,6 +153,22 @@ class Card:
     last_activity: datetime | None
     rows: list[PullRow]
     latest_merge_number: int | None
+    #: The workboard reading of the card — what the eye should land on, then what to do.
+    state: str = "quiet"  # failed | unobservable | pending | green | quiet
+    verb: str = ""  # Fix | Look | Wait | Review | (none)
+    headline: str = ""  # the self-contained nudge, e.g. "2 checks failing on #83"
+
+
+#: Board order of the card states, most actionable first — the legend order and the summary line.
+STATE_ORDER: tuple[str, ...] = ("failed", "unobservable", "pending", "green", "quiet")
+
+STATE_LABELS: dict[str, str] = {
+    "failed": "needs a fix",
+    "unobservable": "cannot be seen",
+    "pending": "waiting on checks",
+    "green": "green, review it",
+    "quiet": "quiet",
+}
 
 
 class DemoStripPanelType:
@@ -193,6 +209,7 @@ class DemoStripPanelType:
         return {
             "strip_error": None,
             "cards": cards,
+            "summary": board_summary(cards),
             "collection": collection,
             "navigation": NAVIGATION,
             "window_hours": int(WINDOW.total_seconds() // 3600),
@@ -398,22 +415,22 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
         ]
         latest_merge = max((int(pr.get("number") or 0) for pr in merged), default=None)
         criticality, note = _criticality(repo)
-        cards.append(
-            Card(
-                entity_id=str(repo.get("entity_id") or ""),
-                full_name=full_name,
-                name=full_name.rsplit("/", 1)[
-                    -1
-                ],  # the org is the whole strip; the card says the repository
-                html_url=str(repo.get("html_url") or ""),
-                page_url=f"{REPO_PAGE_SLUG}?{REPO_PAGE_VAR}={repo.get('entity_id') or ''}",
-                criticality=criticality,
-                criticality_note=note,
-                last_activity=max(qualifying),
-                rows=open_rows,
-                latest_merge_number=latest_merge,
-            )
+        card = Card(
+            entity_id=str(repo.get("entity_id") or ""),
+            full_name=full_name,
+            name=full_name.rsplit("/", 1)[
+                -1
+            ],  # the org is the whole strip; the card says the repository
+            html_url=str(repo.get("html_url") or ""),
+            page_url=f"{REPO_PAGE_SLUG}?{REPO_PAGE_VAR}={repo.get('entity_id') or ''}",
+            criticality=criticality,
+            criticality_note=note,
+            last_activity=max(qualifying),
+            rows=open_rows,
+            latest_merge_number=latest_merge,
         )
+        _summarize(card)
+        cards.append(card)
     cards.sort(
         key=lambda c: (
             CRITICALITY_RANK.get(c.criticality, len(CRITICALITY_RANK)),
@@ -422,6 +439,75 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
         )
     )
     return cards
+
+
+def _numbers(rows: list[PullRow], limit: int = 3) -> str:
+    """``#7, #83`` — the PR numbers a nudge points at, capped so the line stays one line."""
+    shown = [f"#{r.number}" for r in rows[:limit]]
+    if len(rows) > limit:
+        shown.append(f"+{len(rows) - limit} more")
+    return ", ".join(shown)
+
+
+def _summarize(card: Card) -> None:
+    """Fold a card's rows into ONE state, one verb and one headline — the nudge.
+
+    Precedence is by what the reader has to do, worst first: something failed (fix it) >
+    something cannot be seen (look at GitHub) > something is still running (wait) > everything
+    observed is green (review or merge is the human's call — passing checks do not establish
+    approval) > nothing open (rest). The headline names the PR numbers so the nudge is
+    self-contained: the reader can act from the card alone.
+    """
+    failed = [r for r in card.rows if r.failed]
+    unobs = [r for r in card.rows if r.checks_state == "unobservable"]
+    pending = [r for r in card.rows if r.pending and not r.failed]
+    green = [
+        r
+        for r in card.rows
+        if r.checks_state == "observed" and r.passed and not r.failed and not r.pending
+    ]
+    if failed:
+        n = sum(len(r.failed) for r in failed)
+        card.state, card.verb = "failed", "Fix"
+        card.headline = (
+            f"{n} failing check{'s' if n != 1 else ''} on {_numbers(failed)}"
+        )
+    elif unobs:
+        card.state, card.verb = "unobservable", "Look"
+        card.headline = (
+            f"checks not observable on {_numbers(unobs)} — open it on GitHub"
+        )
+    elif pending:
+        n = sum(len(r.pending) for r in pending)
+        card.state, card.verb = "pending", "Wait"
+        card.headline = (
+            f"{n} check{'s' if n != 1 else ''} still running on {_numbers(pending)}"
+        )
+    elif green:
+        card.state, card.verb = "green", "Review"
+        card.headline = f"{_numbers(green)} green — review it"
+    elif card.rows:
+        card.state, card.verb = "quiet", "Look"
+        card.headline = f"no checks reported on {_numbers(card.rows)}"
+    else:
+        card.state, card.verb = "quiet", ""
+        card.headline = (
+            f"nothing open — latest merge #{card.latest_merge_number}"
+            if card.latest_merge_number
+            else "nothing open"
+        )
+
+
+def board_summary(cards: list[Card]) -> list[dict[str, Any]]:
+    """The board's first line: how many cards sit in each state, in board order, zeros omitted."""
+    counts = dict.fromkeys(STATE_ORDER, 0)
+    for card in cards:
+        counts[card.state] = counts.get(card.state, 0) + 1
+    return [
+        {"state": state, "count": counts[state], "label": STATE_LABELS[state]}
+        for state in STATE_ORDER
+        if counts[state]
+    ]
 
 
 def collection_status(jobs_env: dict[str, Any], *, now: datetime) -> dict[str, Any]:

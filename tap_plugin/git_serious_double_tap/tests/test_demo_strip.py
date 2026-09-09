@@ -356,3 +356,70 @@ def test_collection_line_ignores_other_collectors() -> None:
         ]
     }
     assert collection_status(env, now=NOW)["state"] == "never"
+
+
+# --- the workboard reading of a card --------------------------------------------
+
+
+def test_card_state_and_nudge_precedence() -> None:
+    repos = [_repo("o/f"), _repo("o/u"), _repo("o/p"), _repo("o/g"), _repo("o/q")]
+    prs = [
+        _pr(
+            "o/f",
+            1,
+            checks=[
+                _check("a", run_id=1),
+                _check("rids", conclusion="failure", run_id=2),
+                _check("gate", conclusion="", status="queued", run_id=3),
+            ],
+        ),
+        _pr("o/u", 2, checks_observability="unobservable", checks=[]),
+        _pr(
+            "o/p",
+            3,
+            checks=[
+                _check("a", run_id=1),
+                _check("gate", conclusion="", status="in_progress", run_id=2),
+            ],
+        ),
+        _pr("o/g", 4, checks=[_check("a", run_id=1), _check("b", run_id=2)]),
+        _pr(
+            "o/q",
+            5,
+            state="MERGED",
+            created=timedelta(days=2),
+            merged_at=_iso(timedelta(hours=1)),
+        ),
+    ]
+    by = {c.full_name: c for c in build_cards(_env(repos, prs), now=NOW)}
+    assert (by["o/f"].state, by["o/f"].verb, by["o/f"].headline) == (
+        "failed",
+        "Fix",
+        "1 failing check on #1",
+    )
+    assert (by["o/u"].state, by["o/u"].verb) == ("unobservable", "Look")
+    assert (by["o/p"].state, by["o/p"].verb, by["o/p"].headline) == (
+        "pending",
+        "Wait",
+        "1 check still running on #3",
+    )
+    assert (by["o/g"].state, by["o/g"].verb) == ("green", "Review")
+    assert by["o/g"].headline == "#4 green — review it"
+    assert (by["o/q"].state, by["o/q"].verb, by["o/q"].headline) == (
+        "quiet",
+        "",
+        "nothing open — latest merge #5",
+    )
+
+
+def test_board_summary_counts_in_board_order_without_zeros() -> None:
+    from tap_plugin.git_serious_double_tap.panels.demo_strip import board_summary
+
+    repos = [_repo("o/a"), _repo("o/b"), _repo("o/c")]
+    prs = [
+        _pr("o/a", 1, checks=[_check("x", conclusion="failure", run_id=1)]),
+        _pr("o/b", 2, checks=[_check("x", conclusion="failure", run_id=1)]),
+        _pr("o/c", 3, checks=[_check("x", run_id=1)]),
+    ]
+    summary = board_summary(build_cards(_env(repos, prs), now=NOW))
+    assert [(s["state"], s["count"]) for s in summary] == [("failed", 2), ("green", 1)]

@@ -1,52 +1,79 @@
-/* double-tap demo strip (req-git-serious-double-tap-page-strip) — a Tufte pass.
-   The data is the design: a serif page, hairline rules instead of boxes, no fills, no badges,
-   colour only as a second channel on the two words that need it (failed, pending). Cards wrap
-   like paragraphs in columns; nothing scrolls sideways. */
-.dts { font-family: "ET Book", Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif; font-size: 15px; line-height: 1.45; color: #111; max-width: 96rem; padding: 1.2rem 2.2rem 1.6rem; }
-.dts a { color: inherit; text-decoration: none; }
-.dts a:hover, .dts a:focus { text-decoration: underline; text-underline-offset: 0.15em; }
-.dts-head { display: flex; align-items: baseline; gap: 1.4rem; flex-wrap: wrap; border-bottom: 1px solid #111; padding-bottom: 0.35rem; margin-bottom: 1.4rem; }
-.dts-title { font-size: 1.35rem; font-weight: 400; font-style: italic; margin: 0; letter-spacing: 0.01em; }
-.dts-collection { margin: 0; font-size: 0.85rem; color: #555; font-style: italic; }
-.dts-collection time { font-style: normal; font-variant-numeric: tabular-nums; }
-.dts-collection--stale { color: #8a6d00; }
-.dts-collection--failed, .dts-collection--never { color: #a11; }
-.dts-refresh { margin-left: auto; font-size: 0.75rem; color: #888; display: inline-flex; gap: 0.4rem; align-items: baseline; }
-.dts-refresh-btn { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; color: #888; }
-.dts-refresh-btn:hover { color: #111; }
+/* double-tap workboard (req-git-serious-double-tap-page-strip) — v0.4.0.
+   Three levels for the eye: the board (title + one summary line), the order of the cards, then
+   one card as a universe of its own — its nudge first, then the rows. Cards are real objects
+   (surface, edge, a state rail); the ground is a quiet warm grey so the surfaces lift. What is
+   kept from the Tufte pass: hairlines inside a card, small caps for the repository, tabular
+   digits, and colour spent only on state. */
+.dts { --dts-ink: #1b1d22; --dts-muted: #5d6270; --dts-faint: #9a9fab; --dts-ground: #f1f0ec; --dts-surface: #ffffff; --dts-edge: #d8d6cf; --dts-rule: #e7e5df;
+       --dts-link: #1e4f8a; --dts-fail: #b42318; --dts-pend: #a15c00; --dts-good: #1f7a3a; --dts-quiet: #b8b5ad; --dts-look: #6f42c1;
+       font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.4; color: var(--dts-ink);
+       background: var(--dts-ground); padding: 1.1rem 1.6rem 1.6rem; }
+.dts a { color: var(--dts-link); text-decoration: none; }
+.dts a:hover, .dts a:focus { text-decoration: underline; text-underline-offset: 0.12em; }
+/* Level 1 — the board */
+.dts-head { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "title collection refresh" "summary summary summary"; column-gap: 1.4rem; row-gap: 0.35rem; align-items: baseline; margin-bottom: 1.1rem; }
+.dts-title { grid-area: title; font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif; font-size: 1.45rem; font-weight: 400; font-style: italic; margin: 0; }
+.dts-collection { grid-area: collection; margin: 0; font-size: 0.8rem; color: var(--dts-muted); }
+.dts-collection time { font-variant-numeric: tabular-nums; }
+.dts-collection--stale { color: var(--dts-pend); }
+.dts-collection--failed, .dts-collection--never { color: var(--dts-fail); }
+.dts-refresh { grid-area: refresh; font-size: 0.75rem; color: var(--dts-faint); display: inline-flex; gap: 0.4rem; align-items: baseline; justify-self: end; }
+.dts-refresh-btn { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--dts-faint); }
+.dts-refresh-btn:hover { color: var(--dts-ink); }
 .dts-refresh-left { min-width: 3ch; font-variant-numeric: tabular-nums; }
-.dts-error, .dts-empty { margin: 0.5rem 0 1rem; color: #555; font-style: italic; }
-.dts-error { color: #a11; }
-.dts-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr)); gap: 1.6rem 3rem; align-items: start; }
-.dts-card { min-width: 0; }
-.dts-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; border-bottom: 1px solid #ccc; padding-bottom: 0.15rem; margin-bottom: 0.35rem; }
-.dts-repo { font-variant: small-caps; letter-spacing: 0.04em; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dts-crit { font-size: 0.75rem; font-style: italic; color: #666; white-space: nowrap; letter-spacing: 0.02em; }
-.dts-crit--critical { color: #111; font-style: normal; font-variant: small-caps; letter-spacing: 0.08em; }
-.dts-crit--unclassified { color: #999; }
+.dts-summary { grid-area: summary; margin: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 1.4rem; font-size: 0.85rem; color: var(--dts-muted); font-variant-numeric: tabular-nums; }
+.dts-summary-total { color: var(--dts-ink); }
+.dts-summary-item b { font-weight: 600; }
+.dts-summary-item--failed { color: var(--dts-fail); }
+.dts-summary-item--pending { color: var(--dts-pend); }
+.dts-summary-item--green { color: var(--dts-good); }
+.dts-summary-item--unobservable { color: var(--dts-look); }
+.dts-error, .dts-empty { margin: 0.5rem 0 1rem; color: var(--dts-muted); }
+.dts-error { color: var(--dts-fail); }
+/* Level 2 — the order: a row-major grid so the first card is top-left and the eye reads on */
+.dts-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); gap: 1rem; align-items: start; }
+/* Level 3 — one card, a universe to itself */
+.dts-card { background: var(--dts-surface); border: 1px solid var(--dts-edge); border-left: 4px solid var(--dts-quiet); border-radius: 3px; padding: 0.55rem 0.85rem 0.7rem; min-width: 0; box-shadow: 0 1px 2px rgba(27, 29, 34, 0.06); }
+.dts-card--state-failed { border-left-color: var(--dts-fail); }
+.dts-card--state-unobservable { border-left-color: var(--dts-look); }
+.dts-card--state-pending { border-left-color: var(--dts-pend); }
+.dts-card--state-green { border-left-color: var(--dts-good); }
+.dts-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.8rem; }
+.dts a.dts-repo { color: var(--dts-ink); }
+.dts-repo { font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif; font-variant: small-caps; letter-spacing: 0.05em; font-size: 1.08rem; color: var(--dts-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dts-crit { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dts-muted); white-space: nowrap; border: 1px solid var(--dts-edge); border-radius: 2px; padding: 0.05rem 0.35rem; }
+.dts-crit--critical { color: var(--dts-surface); background: var(--dts-ink); border-color: var(--dts-ink); }
+.dts-crit--high { border-color: var(--dts-muted); }
+.dts-crit--unclassified { color: var(--dts-faint); border-style: dashed; }
+.dts-nudge { margin: 0.45rem 0 0.5rem; padding-bottom: 0.45rem; border-bottom: 1px solid var(--dts-rule); font-size: 0.95rem; display: flex; gap: 0.45rem; align-items: baseline; }
+.dts-nudge-mark { flex: 0 0 1.1rem; text-align: center; font-weight: 700; }
+.dts-verb { font-weight: 700; }
+.dts-nudge--failed .dts-nudge-mark, .dts-nudge--failed .dts-verb { color: var(--dts-fail); }
+.dts-nudge--unobservable .dts-nudge-mark, .dts-nudge--unobservable .dts-verb { color: var(--dts-look); }
+.dts-nudge--pending .dts-nudge-mark, .dts-nudge--pending .dts-verb { color: var(--dts-pend); }
+.dts-nudge--green .dts-nudge-mark, .dts-nudge--green .dts-verb { color: var(--dts-good); }
+.dts-nudge--quiet { color: var(--dts-muted); }
 .dts-rows { list-style: none; margin: 0; padding: 0; }
-.dts-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.3rem 1.2rem; align-items: baseline; padding: 0.15rem 0; }
-.dts-pr { display: flex; gap: 0.5rem; min-width: 0; align-items: baseline; }
-.dts-num { color: #777; font-variant-numeric: tabular-nums; font-size: 0.85rem; flex: 0 0 auto; }
+.dts-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.2rem 1rem; align-items: baseline; padding: 0.18rem 0; }
+.dts-row + .dts-row { border-top: 1px solid var(--dts-rule); }
+.dts-pr { display: flex; gap: 0.45rem; min-width: 0; align-items: baseline; color: var(--dts-ink); }
+.dts-num { color: var(--dts-muted); font-variant-numeric: tabular-nums; font-size: 0.82rem; flex: 0 0 auto; }
 .dts-pr-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.dts-draft { flex: 0 0 auto; font-size: 0.75rem; font-style: italic; color: #777; }
-.dts-results { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.15rem 0.9rem; white-space: nowrap; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
-.dts-res { color: #555; }
-.dts-res--pass { color: #333; }
-.dts-res--fail { color: #a11; }
-.dts-res--pend { color: #8a6d00; }
-.dts-res--other { color: #888; }
-.dts-res--unobs { color: #a11; font-style: italic; }
-.dts-res--none { color: #999; font-style: italic; }
-.dts-none { margin: 0; padding: 0.15rem 0; color: #777; font-style: italic; font-size: 0.9rem; }
-.dts-nav { display: flex; gap: 0 1.6rem; flex-wrap: wrap; margin-top: 1.8rem; padding-top: 0.4rem; border-top: 1px solid #ccc; font-size: 0.85rem; font-variant: small-caps; letter-spacing: 0.06em; }
-.dts-nav-link { color: #333; }
+.dts-draft { flex: 0 0 auto; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dts-faint); }
+.dts-results { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.15rem 0.7rem; white-space: nowrap; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.dts-res { color: var(--dts-muted); }
+.dts-res--pass { color: var(--dts-good); }
+.dts-res--fail { color: var(--dts-fail); font-weight: 600; }
+.dts-res--pend { color: var(--dts-pend); }
+.dts-res--other { color: var(--dts-faint); }
+.dts-res--unobs { color: var(--dts-look); font-style: italic; }
+.dts-res--none { color: var(--dts-faint); font-style: italic; }
+.dts-merge { font-size: 0.85rem; }
+.dts-nav { display: flex; gap: 0 1.4rem; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 0.5rem; border-top: 1px solid var(--dts-edge); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.dts-nav-link { color: var(--dts-muted); }
+.dts-nav-link:hover { color: var(--dts-ink); }
 @media (prefers-color-scheme: dark) {
-  .dts { color: #ddd; }
-  .dts-head { border-color: #ddd; }
-  .dts-card-head, .dts-nav { border-color: #444; }
-  .dts-collection, .dts-crit, .dts-num, .dts-res, .dts-draft, .dts-none, .dts-empty, .dts-nav-link { color: #999; }
-  .dts-res--pass, .dts-crit--critical { color: #ddd; }
-  .dts-res--fail, .dts-res--unobs, .dts-collection--failed { color: #e66; }
-  .dts-res--pend, .dts-collection--stale { color: #d4a72c; }
+  .dts { --dts-ink: #e8e8e3; --dts-muted: #a5a8b0; --dts-faint: #6f737c; --dts-ground: #17181b; --dts-surface: #202226; --dts-edge: #33363c; --dts-rule: #2b2e33;
+         --dts-link: #7fb0ea; --dts-fail: #ff7b6e; --dts-pend: #e0a53c; --dts-good: #5fcf7a; --dts-quiet: #44474d; --dts-look: #b79cf0; }
+  .dts-card { box-shadow: none; }
 }

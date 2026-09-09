@@ -123,54 +123,38 @@ open pull requests, and which checks pass or fail on each PR's **current head**.
 columns of text — nothing scrolls sideways (v0.3.0; v0.2.0 was one scrolling row). Below the cards,
 links to the four views (organization, repository machinery, the gate, the status wall page).
 
-**Typography** (v0.3.0, the Tufte pass): a serif page, hairline rules instead of boxes, no fills
-and no badges; the repository name in small caps, criticality as a word, the PR number in tabular
-grey; colour only as a second channel on the two words that carry state — failed (red) and
-pending (ochre) — with ✓ ✕ ◷ ⊘ beside them so the state survives without colour. The data is the
-design; chrome that does not say something about a repository is absent.
+**A workboard, not a dashboard** (v0.4.0, George 2026-09-09): the reader is here to perform work,
+so the board presents opportunities for action. Three levels for the eye, in the order the viz
+system already teaches — the board, then the order of the cards, then one card:
 
-**Selection** — a repository is a card when, in the last 24 hours, one of its pull requests was
-opened or merged, its head commit was committed (the `PROPOSES_COMMIT` join onto git_core's
-commit, when that commit was observed), or a check on its head is still queued or running.
-GitHub's `updated_at` — comments, labels, metadata edits — never qualifies. Reopen is not
-observable on the collected node and is not counted.
+1. **The board** — a title, the collection's freshness, and one summary line counting the cards
+   by state in board order (*needs a fix · cannot be seen · waiting on checks · green, review it ·
+   quiet*). The overview before the detail (Shneiderman's mantra).
+2. **The order** — a row-major grid so the first card is top-left and reading continues left to
+   right; criticality first, then movement, then name (unchanged). Cards wrap; nothing scrolls.
+3. **One card, a universe to itself** — a surface with an edge and a state rail (the preattentive
+   cue), the repository in small caps with its criticality chip, then the **nudge**: one line with a
+   verb and the PR numbers it points at, self-contained enough to act on from the card alone
+   (*Fix 2 failing checks on #83* · *Look — checks not observable on #7* · *Wait — 3 checks still
+   running on #7* · *Review — #344 green* · *nothing open — latest merge #55*), then the rows.
 
-**Order** — the organization's `criticality` custom property (`critical` > `high` > `medium` >
-`low`), then most recent qualifying movement, then full name. A property that is unset, outside
-the allowed values, or whose observability is `unobservable` renders the word *unclassified* with
-the reason on hover — never blank, and the three causes stay distinguishable.
-
-**Rows** — every open PR of a qualifying repository, number ascending, drafts marked. Per row:
-the count of distinct passing checks, then failed-check names, then queued/running names, then
-anything else (skipped, cancelled, neutral, an unknown word) compactly WITH its word. Distinct
-means one result per (producing app, check name), keeping the highest `check_run_id`, so a rerun
-replaces the run it re-ran and never counts beside it; two producers with the same check name stay
-two checks. Results are the rollup of the PR's `head_sha` at collection; the collector replaces
-head and checks together on every observation, so an old green cannot survive a new push.
-
-**Three states** — `checks_observability = unobservable` reads *checks not observable*; an
-observed head with no contexts reads *no checks reported*; neither is a count and neither is
-green. A repository that qualified only by a merge reads *No open PRs · latest merge #n*.
-
-**Collection line** — the newest github_core collection job: *collected N min ago* when the last
-success is within 30 minutes; *(stale)* beyond it; *the latest attempt FAILED* when a failure
-followed the last success; *no successful collection yet* when none has. The 30-minute threshold
-is a placeholder until the cadence is declared where the panel can read it; the cadence itself is
-an operational change outside this requirement. The coverage sentence on hover names what the
-results are: GitHub check runs and commit statuses on the current head, which do not establish
-approval, conflicts or merge readiness.
-
-**Links** — repository name → github_core's repository page (`/samsite/repo?repository_entity_id=`);
-PR number/title → GitHub; the passing count → the PR's checks tab; each failed or pending name →
-that check's own URL. Text and symbols (✓ ✕ ◷ ⊘) carry state alongside colour.
+Nudge precedence is by what the reader must do, worst first: failed > not observable > pending >
+green > quiet. *Green* deliberately says *review it*, never *merge*: passing checks do not
+establish approval, conflicts or merge readiness (the hover says so). Colour is spent only on
+state — red, ochre, green, violet for not-observable — and every state also carries a glyph and a
+word. Kept from the Tufte pass: hairlines inside a card, small caps for the name, tabular digits,
+and no chrome that says nothing about a repository. The design fundamentals behind these choices
+(attention allocation, preattentive cues, alarm rationalization, situation awareness, pull work)
+are written up in the double-tap workboard briefing (docs, 2026-09-09) and summarized in
+[Design fundamentals](#design-fundamentals).
 
 #### Implementation
 
 `tap_plugin/git_serious_double_tap/panels/demo_strip/__init__.py` — panel type
 `double-tap-demo-strip` (registered in `apps.py`), reads through `execute_gryphon_raw` over four
 declared queries (repositories, pull requests, the `PROPOSES_COMMIT` join, collection jobs) and
-folds them in pure functions (`build_cards`, `dedupe_checks`, `classify_check`,
-`collection_status`); template `templates/git_serious_double_tap/panels/demo_strip.html`; styles
+folds them in pure functions (`build_cards`, `dedupe_checks`, `classify_check`, `_summarize`,
+`board_summary`, `collection_status`); template `templates/git_serious_double_tap/panels/demo_strip.html`; styles
 `static/git_serious_double_tap/css/demo_strip.css`. No github_core or git_core Python is imported —
 `depends_on` stays empty; the queries name those plugins' node types, a data dependency the boot
 record already orders. Data contract: github_core ≥ the release that ships `pull_request`
@@ -185,7 +169,29 @@ record already orders. Data contract: github_core ≥ the release that ships `pu
 | req-git-serious-double-tap-page-strip-3 | Current Head, Reruns Collapsed | Implemented | Distinct (app, name) keeps the highest `check_run_id`; passed is a count, failed then pending are names, other keeps its word. | `test_rerun_replaces_the_run_it_reran`, `test_row_buckets_passed_failed_pending_other`, `test_unknown_words_are_kept_not_dropped` |
 | req-git-serious-double-tap-page-strip-4 | Three Observability States | Implemented | unobservable / none / observed render distinct text and none reads green; a merge-only repository shows the latest merge number. | `test_check_observability_three_states_never_read_green`, `test_merged_only_repository_shows_latest_merge_and_no_rows` |
 | req-git-serious-double-tap-page-strip-5 | Freshness Said | Implemented | never / fresh / stale / failed from the github_core collection jobs only; never-succeeded outranks failed. | `test_collection_line_four_states`, `test_collection_line_ignores_other_collectors` |
+| req-git-serious-double-tap-page-strip-7 | One Nudge Per Card | Implemented | Every card carries exactly one state, verb and headline by the precedence failed > unobservable > pending > green > quiet; the board's summary line counts cards by state in that order with zeros omitted. | `test_card_state_and_nudge_precedence`, `test_board_summary_counts_in_board_order_without_zeros` |
 | req-git-serious-double-tap-page-strip-6 | Live | Implemented | On the 8010 grid after a collection (2026-09-08): five cards, critical → high → unclassified, PR rows with passed counts and pending names, collection line fresh. | Observed by hand; a boot-and-test lane for this repo is #4. |
+
+### Design Fundamentals
+----
+*Not a requirement — the standing rationale behind req-git-serious-double-tap-page-strip, so the
+next pass argues with the principles rather than with taste. Prior-art search 2026-09-09.*
+
+| Field | Principle | What it decides on this board |
+| --- | --- | --- |
+| Attention allocation (Wickens, SEEV) | Where the eye goes = salience + expectancy + value − effort. Design rule: correlate salience with value, expectancy with effort. | The most valuable card is first and most salient (rail + verb); every card shape is identical so the expected place for the nudge costs no effort. |
+| Preattentive processing & Gestalt (Healey; Few) | Colour hue, a single distinct glyph, enclosure and proximity are read before conscious attention; one attribute at a time. | State is ONE hue plus ONE glyph on the rail and the nudge; enclosure (the surface) groups a repository; the hairline separates rows without a second colour. |
+| Alarm management (ISA-18.2 / EEMUA 191) | Every alarm reaching an operator is one they can and should act on; reserve high priority for a small set; rationalize away nuisance; a flood is >10 in 10 min. | The nudge is an alarm with a verb; *quiet* and *green* are demoted below the actionable states; the summary line is the flood meter. |
+| Situation awareness (Endsley) & skill/rule/knowledge behaviour (Rasmussen) | Perceive → comprehend → project; rule-based response needs the cue to name the rule. | Summary (perceive) → card order (comprehend) → nudge (the rule: Fix/Look/Wait/Review) → rows (project what happens next). |
+| Visual information seeking (Shneiderman) & dashboards (Few) | Overview first, zoom and filter, details on demand; one screen, glanceable, simplicity. | Board → card → rows → links to GitHub and the status wall page are the four zoom levels; the strip stays one screen. |
+| Pull work (Kanban; Anderson) | Make work visible, limit work in progress, pull the next item from the top. | Cards are the visible work; criticality-then-recency is the pull order; a WIP limit and an *acknowledged* state are the open questions. |
+| Signifiers & heuristics (Norman; Nielsen) | Visibility of system status; match the real world; signifiers say what is possible. | The collection line is system status; the nudge is written in the reader's verbs; links look like links, results look like results. |
+| Motor and choice cost (Fitts; Hick) | Fewer, larger targets; fewer choices per decision. | One primary link per row; one verb per card; four navigation links, not a menu. |
+
+Open questions this rationale surfaces (their own issues when picked up): order within a
+criticality by actionability rather than recency; a work-in-progress cap on the board; an
+*acknowledged* state so a nudge can be silenced without hiding the card; whether a repository
+with nothing actionable belongs on the board at all.
 
 ### v0 Non-Goals
 ----
