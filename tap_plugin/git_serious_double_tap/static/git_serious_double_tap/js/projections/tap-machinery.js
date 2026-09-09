@@ -31,6 +31,12 @@
  *      publish chain is read.
  *   3. Cross-lane relationships the base picture cannot draw: `uses:` of a local reusable
  *      workflow and `workflow_run` chaining, as synthetic dashed / dotted edges.
+ *   4. Destinations. A registry the publish lane's workflows name in their files (the
+ *      collector extracts domain names from each workflow) is drawn as an output box on the
+ *      left — ghcr.io today — with a "pushes" edge from every workflow that names it. It is
+ *      derived from the YAML, so it is on the board before the registry's contents can be
+ *      listed (GitHub Packages is closed to App credentials; req-github-core-packages); the
+ *      package nodes fill it in once a token is placed.
  *
  * Nothing here names tap. The lanes are derived from the collected workflow
  * configuration, so the same module reads any repository; only the page pins which one.
@@ -65,6 +71,7 @@ const T = {
     runner: "github_core__github_runner",
     issuer: "identity_core__oidc_issuer",
     placeholder: "_machinery_placeholder",
+    registry: "_tap_registry",
     pipelines: "_tap_pipelines",
     toprow: "_tap_toprow",
     lane: "_tap_lane",
@@ -88,6 +95,8 @@ const SYN = {
     hostsThirdParty: "_MACHINERY_HOSTS_THIRD_PARTY",
     hasPlaceholder: "_MACHINERY_HAS_PLACEHOLDER",
     hasRef: "_MACHINERY_HAS_REF",
+    hasOutput: "_TAP_HAS_OUTPUT",
+    pushesTo: "_TAP_PUSHES_TO",
     hasBlock: "_TAP_HAS_BLOCK",
     hasLane: "_TAP_HAS_LANE",
     laneHolds: "_TAP_LANE_HOLDS_WORKFLOW",
@@ -108,12 +117,17 @@ const BASE_SIZES = {
     [T.runner]: {width: 180, height: 40},
     [T.issuer]: {width: 200, height: 40},
     [T.placeholder]: {width: 190, height: 30},
+    [T.registry]: {width: 190, height: 44},
     [T.pipelines]: {width: 240, height: 60},
     [T.toprow]: {width: 240, height: 60},
     ...Object.fromEntries(LANE_TYPES.map((t) => [t, {width: 240, height: 60}])),
 };
 const DEFAULTS = {flow: "rtl", column_gap: 48, row_gap: 12};
 // ---- end of the restated base ----------------------------------------------------------
+
+//: Registries a workflow file can name. Matched against the collector's extracted domain names,
+//: publish lane only — a domain in a scanner's file is an input, not a destination.
+const REGISTRY_RE = /^(ghcr\.io|docker\.io|index\.docker\.io|quay\.io|public\.ecr\.aws|[\w.-]+\.dkr\.ecr\.[\w-]+\.amazonaws\.com|[\w.-]+\.pkg\.dev|mcr\.microsoft\.com|registry\.npmjs\.org|upload\.pypi\.org)$/;
 
 //: Trigger precedence — the FIRST of these a workflow declares is its primary trigger.
 const PRIMARY = ["pull_request", "pull_request_target", "merge_group", "push", "workflow_run", "schedule", "workflow_call", "workflow_dispatch"];
@@ -156,6 +170,7 @@ export async function execute(context) {
         const plan = _classify(workflows, facts, warn);
         _stampSchedule(plan, warn);
         _addLanes(cy, repo, plan);
+        _addRegistries(cy, repo, plan, fullName);
         _drawRelationships(cy, plan);
         plans.push(plan);
         laned += plan.size;
@@ -176,6 +191,7 @@ export async function execute(context) {
             {name: "platform-hosts-third-party", gryphon: `(parent:${T.platform})-[:${SYN.hostsThirdParty}]->(child)`},
             {name: "account-owns-repository", gryphon: `(parent:${T.account})-[:${E.ownsRepo}]->(child:${T.repository})`},
             {name: "repository-has-block", gryphon: `(parent:${T.repository})-[:${SYN.hasBlock}]->(child:${T.pipelines})`},
+            {name: "repository-has-output", gryphon: `(parent:${T.repository})-[:${SYN.hasOutput}]->(child:${T.registry})`},
             {name: "block-has-toprow", gryphon: `(parent:${T.pipelines})-[:${SYN.hasBlock}]->(child:${T.toprow})`},
             {name: "block-has-lane", gryphon: `(parent)-[:${SYN.hasLane}]->(child)`},
             {name: "lane-holds-workflow", gryphon: `(parent)-[:${SYN.laneHolds}]->(child:${T.workflow})`},
@@ -457,6 +473,38 @@ function _addLanes(cy, repo, plan) {
     }
 }
 
+function _addRegistries(cy, repo, plan, fullName) {
+    const byDomain = new Map(); // domain → [items]
+    for (const item of plan.values()) {
+        if (item.lane !== "publish") continue;
+        const refs = (item.conf && item.conf.refs && item.conf.refs.domain_names) || [];
+        for (const d of refs) {
+            const domain = String(d || "").toLowerCase();
+            if (!REGISTRY_RE.test(domain)) continue;
+            if (!byDomain.has(domain)) byDomain.set(domain, []);
+            byDomain.get(domain).push(item);
+        }
+    }
+    let order = -10;
+    for (const [domain, items] of byDomain) {
+        const id = `${T.registry}:${repo.id()}:${domain}`;
+        const owner = fullName.includes("/") ? fullName.split("/")[0] : "";
+        const repoName = fullName.includes("/") ? fullName.split("/")[1] : "";
+        // ghcr.io packages live under the GitHub org; other registries get no link until collected.
+        const navUrl = domain === "ghcr.io" && owner ? `https://github.com/orgs/${owner}/packages?repo_name=${encodeURIComponent(repoName)}` : "";
+        cy.add({
+            group: "nodes",
+            data: {id, entity_type: T.registry, label: `${domain} · registry`, shape: "round-rectangle", _stage: STAGE.outputs, _order: order++, _registry: domain,
+                   nav_url: navUrl, nav_external: !!navUrl, _pushed_by: items.map((i) => i.name).join(", ")},
+            classes: "tap-registry",
+        });
+        cy.add({group: "edges", data: {id: `${SYN.hasOutput}:${id}`, source: repo.id(), target: id, edge_type: SYN.hasOutput}, classes: "tap-lane-containment"});
+        for (const item of items) {
+            cy.add({group: "edges", data: {id: `${SYN.pushesTo}:${item.id}:${domain}`, source: item.id, target: id, edge_type: SYN.pushesTo, label: "pushes"}, classes: "tap-lane-edge tap-lane-pushes"});
+        }
+    }
+}
+
 function _drawRelationships(cy, plan) {
     for (const item of plan.values()) {
         for (const callee of item.callsLocal) {
@@ -488,6 +536,10 @@ function _style(cy) {
         .style({"display": "none"})
         .selector(".tap-lane-edge")
         .style({"curve-style": "unbundled-bezier", "width": 1.5, "line-color": "#0e6b64", "target-arrow-color": "#0e6b64", "target-arrow-shape": "triangle", "arrow-scale": 0.9, "font-size": "9px", "color": "#0a4f4a", "text-background-color": "#ffffff", "text-background-opacity": 0.8, "text-background-padding": "2px", "z-index": 100})
+        .selector(".tap-registry")
+        .style({"background-color": "#1b1d22", "background-opacity": 0.9, "border-width": 2, "border-color": "#1b1d22", "color": "#ffffff", "font-size": "11px", "font-weight": 600, "text-valign": "center", "text-halign": "center", "text-wrap": "ellipsis", "text-max-width": "170px"})
+        .selector(".tap-lane-pushes")
+        .style({"line-style": "solid", "width": 2, "label": "data(label)", "line-color": "#1b1d22", "target-arrow-color": "#1b1d22"})
         .selector(".tap-lane-calls")
         .style({"line-style": "dashed", "label": "data(label)"})
         .selector(".tap-lane-runs-after")
@@ -500,5 +552,6 @@ function _clear(cy) {
     cy.remove(cy.edges(".tap-lane-containment"));
     cy.remove(cy.nodes(".tap-lane"));
     cy.remove(cy.nodes(".tap-frame"));
+    cy.remove(cy.nodes(".tap-registry"));
     cy.nodes("[_label_base]").forEach((n) => n.data("label", n.data("_label_base")));
 }
