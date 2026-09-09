@@ -136,10 +136,10 @@ system already teaches — the board, then the order of the cards, then one card
    cue), the repository in small caps with its criticality chip, then the **nudge**: one line with a
    verb and the PR numbers it points at, self-contained enough to act on from the card alone
    (*Fix 2 failing checks on #83* · *Look — checks not observable on #7* · *Wait — 3 checks still
-   running on #7* · *Review — #344 green* · *nothing open — latest merge #55*), then the rows.
+   running on #7* · *Review PR #344* · *Look at PR #7 — no checks have reported yet*), then the rows.
 
 Nudge precedence is by what the reader must do, worst first: failed > not observable > pending >
-green > quiet. *Green* deliberately says *review it*, never *merge*: passing checks do not
+green > open with no checks yet. A repository with no open PR is not on the board. *Green* deliberately says *review it*, never *merge*: passing checks do not
 establish approval, conflicts or merge readiness (the hover says so). Colour is spent only on
 state — red, ochre, green, violet for not-observable — and every state also carries a glyph and a
 word. Kept from the Tufte pass: hairlines inside a card, small caps for the name, tabular digits,
@@ -167,7 +167,7 @@ record already orders. Data contract: github_core ≥ the release that ships `pu
 | req-git-serious-double-tap-page-strip-1 | Movement Selects | Implemented | Opened, merged, head-commit date and a running check qualify; `updated_at` alone does not; a PR without a repository node on the grid is not a card. | `test_demo_strip.py::test_repository_qualifies_by_opened_merged_or_head_commit_only`, `test_running_check_counts_as_movement_now`, `test_pull_request_without_a_repository_node_is_not_a_card` |
 | req-git-serious-double-tap-page-strip-2 | Criticality Orders | Implemented | critical > high > medium > low > unclassified, then recency, then name; unset, out-of-range and unobservable all read unclassified with distinct notes. | `test_criticality_orders_then_recency_then_name` |
 | req-git-serious-double-tap-page-strip-3 | Current Head, Reruns Collapsed | Implemented | Distinct (app, name) keeps the highest `check_run_id`; passed is a count, failed then pending are names, other keeps its word. | `test_rerun_replaces_the_run_it_reran`, `test_row_buckets_passed_failed_pending_other`, `test_unknown_words_are_kept_not_dropped` |
-| req-git-serious-double-tap-page-strip-4 | Three Observability States | Implemented | unobservable / none / observed render distinct text and none reads green; a merge-only repository shows the latest merge number. | `test_check_observability_three_states_never_read_green`, `test_merged_only_repository_shows_latest_merge_and_no_rows` |
+| req-git-serious-double-tap-page-strip-4 | Three Observability States | Implemented | unobservable / none / observed render distinct text and none reads green; a repository with no open PR is not a card even when it moved. | `test_check_observability_three_states_never_read_green`, `test_mover_with_no_open_pull_request_is_not_a_card` |
 | req-git-serious-double-tap-page-strip-5 | Freshness Said | Implemented | never / fresh / stale / failed from the github_core collection jobs only; never-succeeded outranks failed. | `test_collection_line_four_states`, `test_collection_line_ignores_other_collectors` |
 | req-git-serious-double-tap-page-strip-7 | One Nudge Per Card | Implemented | Every card carries exactly one state, verb and headline by the precedence failed > unobservable > pending > green > quiet; the board's summary line counts cards by state in that order with zeros omitted. | `test_card_state_and_nudge_precedence`, `test_board_summary_counts_in_board_order_without_zeros` |
 | req-git-serious-double-tap-page-strip-6 | Live | Implemented | On the 8010 grid after a collection (2026-09-08): five cards, critical → high → unclassified, PR rows with passed counts and pending names, collection line fresh. | Observed by hand; a boot-and-test lane for this repo is #4. |
@@ -190,8 +190,9 @@ next pass argues with the principles rather than with taste. Prior-art search 20
 
 Open questions this rationale surfaces (their own issues when picked up): order within a
 criticality by actionability rather than recency; a work-in-progress cap on the board; an
-*acknowledged* state so a nudge can be silenced without hiding the card; whether a repository
-with nothing actionable belongs on the board at all.
+*acknowledged* state so a nudge can be silenced without hiding the card. (Whether a repository
+with nothing actionable belongs on the board was ruled 2026-09-09: it does not — reaching any
+repository is the menu system's job, not the board's.)
 
 ### v0 Non-Goals
 ----

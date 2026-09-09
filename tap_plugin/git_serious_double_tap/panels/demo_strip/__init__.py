@@ -181,7 +181,7 @@ STATE_LABELS: dict[str, str] = {
     "unobservable": "to look at",
     "pending": "waiting on checks",
     "green": "to review",
-    "quiet": "nothing to do",
+    "quiet": "no checks yet",
 }
 
 
@@ -421,6 +421,8 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
             (_pull_row(pr) for pr, _ in items if pr.get("state") == "OPEN"),
             key=lambda r: r.number,
         )
+        if not open_rows:
+            continue  # nothing to do — a mover with no open PR is not a card (George, 2026-09-09)
         merged = [
             pr
             for pr, _ in items
@@ -470,7 +472,7 @@ def _summarize(card: Card) -> None:
     Precedence is by what the reader has to do, worst first: something failed (fix it) >
     something cannot be seen (look at GitHub) > something is still running (wait) > everything
     observed is green (review or merge is the human's call — passing checks do not establish
-    approval) > nothing open (rest). The headline names the PR numbers so the nudge is
+    approval) > open with no checks reported yet. A repository with no open PR is never a card. The headline names the PR numbers so the nudge is
     self-contained: the reader can act from the card alone.
     """
     failed = [r for r in card.rows if r.failed]
@@ -503,21 +505,9 @@ def _summarize(card: Card) -> None:
     elif green:
         card.state, card.verb = "green", "Review"
         card.targets = _targets(green)
-    elif card.rows:
+    else:
         card.state, card.verb = "quiet", "Look at"
         card.targets, card.tail = _targets(card.rows), "— no checks have reported yet"
-    else:
-        card.state, card.verb = "quiet", ""
-        if card.latest_merge_number:
-            card.lead = "Nothing to do — latest merge"
-            card.targets = [
-                (
-                    card.latest_merge_number,
-                    f"{card.html_url}/pull/{card.latest_merge_number}",
-                )
-            ]
-        else:
-            card.lead = "Nothing to do"
 
 
 def board_summary(cards: list[Card]) -> list[dict[str, Any]]:

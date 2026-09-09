@@ -27,7 +27,7 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
     <p class="dts-error">{{ strip_error }}</p>
   {% elif not cards %}
     <p class="dts-empty">
-      {% if collection and collection.state == "never" %}Nothing to show until a collection succeeds.{% else %}No repository had a pull request opened, pushed, merged or building in the last {{ window_hours }} hours.{% endif %}
+      {% if collection and collection.state == "never" %}Nothing to show until a collection succeeds.{% else %}Nothing to do: no repository has an open pull request that moved in the last {{ window_hours }} hours.{% endif %}
     </p>
   {% else %}
     <div class="dts-strip" role="list" aria-label="Repositories">
@@ -38,7 +38,7 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
             <span class="dts-crit dts-crit--{{ card.criticality }}" {% if card.criticality_note %}title="{{ card.criticality_note }}"{% endif %}>{{ card.criticality|capfirst }}</span>
           </header>
           <p class="dts-nudge dts-nudge--{{ card.state }}"{% if card.state == "green" %} title="Checks pass on the current head. Approval, conflicts and merge readiness are not established by checks — that decision is yours."{% endif %}>
-            {% if card.verb %}<b class="dts-verb">{{ card.verb }}</b>{% endif %}{% if card.lead %} {{ card.lead }}{% endif %}{% for number, url in card.targets %}{% if not forloop.first %},{% endif %} <a class="dts-target" href="{{ url }}" target="_blank" rel="noopener">PR #{{ number }}</a>{% endfor %}{% if card.tail %} {{ card.tail }}{% endif %}
+            <b class="dts-verb">{{ card.verb }}</b>{% if card.lead %} {{ card.lead }}{% endif %}{% for number, url in card.targets %}{% if not forloop.first %},{% endif %} <a class="dts-target" href="{{ url }}" target="_blank" rel="noopener">PR #{{ number }}</a>{% endfor %}{% if card.tail %} {{ card.tail }}{% endif %}
           </p>
           {% if card.rows %}
             <ul class="dts-rows">

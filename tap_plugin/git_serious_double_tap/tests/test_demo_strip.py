@@ -149,7 +149,8 @@ def test_repository_qualifies_by_opened_merged_or_head_commit_only() -> None:
         ],
     }
     names = [c.full_name for c in build_cards(_env(repos, prs, heads), now=NOW)]
-    assert set(names) == {"o/opened", "o/merged", "o/pushed"}
+    # o/merged moved but has no open PR — not a card (ruled 2026-09-09)
+    assert set(names) == {"o/opened", "o/pushed"}
 
 
 def test_running_check_counts_as_movement_now() -> None:
@@ -167,7 +168,8 @@ def test_running_check_counts_as_movement_now() -> None:
     assert [r.name for r in cards[0].rows[0].pending] == ["gate"]
 
 
-def test_merged_only_repository_shows_latest_merge_and_no_rows() -> None:
+def test_mover_with_no_open_pull_request_is_not_a_card() -> None:
+    """Ruled 2026-09-09: a repository that only merged in the window has nothing to do — leave it out."""
     repos = [_repo("o/r")]
     prs = [
         _pr(
@@ -185,9 +187,7 @@ def test_merged_only_repository_shows_latest_merge_and_no_rows() -> None:
             merged_at=_iso(timedelta(hours=1)),
         ),
     ]
-    card = build_cards(_env(repos, prs), now=NOW)[0]
-    assert card.rows == []
-    assert card.latest_merge_number == 7
+    assert build_cards(_env(repos, prs), now=NOW) == []
 
 
 def test_pull_request_without_a_repository_node_is_not_a_card() -> None:
@@ -383,13 +383,7 @@ def test_card_state_and_nudge_precedence() -> None:
             ],
         ),
         _pr("o/g", 4, checks=[_check("a", run_id=1), _check("b", run_id=2)]),
-        _pr(
-            "o/q",
-            5,
-            state="MERGED",
-            created=timedelta(days=2),
-            merged_at=_iso(timedelta(hours=1)),
-        ),
+        _pr("o/q", 5, checks=[]),
     ]
     by = {c.full_name: c for c in build_cards(_env(repos, prs), now=NOW)}
     assert (by["o/f"].state, by["o/f"].headline) == (
@@ -406,7 +400,7 @@ def test_card_state_and_nudge_precedence() -> None:
     assert by["o/g"].targets == [(4, "https://github.com/o/g/pull/4")]
     assert (by["o/q"].state, by["o/q"].headline) == (
         "quiet",
-        "Nothing to do — latest merge PR #5",
+        "Look at PR #5 — no checks have reported yet",
     )
 
 
