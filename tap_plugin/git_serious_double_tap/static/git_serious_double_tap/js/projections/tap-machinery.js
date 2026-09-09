@@ -31,9 +31,18 @@
  *      publish chain is read.
  *   3. Cross-lane relationships the base picture cannot draw: `uses:` of a local reusable
  *      workflow and `workflow_run` chaining, as synthetic dashed / dotted edges.
- *   4. Destinations. A registry the publish lane's workflows name in their files (the
- *      collector extracts domain names from each workflow) is drawn as an output box on the
- *      left — ghcr.io today — with a "pushes" edge from every workflow that names it. It is
+ *   4. Chains and what they leave behind. Workflows joined by `workflow_run` are grouped in a
+ *      vertical chain frame inside their lane (AI review capture above AI review). Artifacts
+ *      each workflow's runs uploaded in the collected window are drawn inside the workflow box
+ *      as one node per kind ("schemathesis-log ×21"), in a column after the jobs, stacked with
+ *      a count when a workflow emits more than one kind. Kinds are the upload names with
+ *      their variable parts (hashes, matrix tokens) folded — the YAML-declared kinds are the
+ *      github_core follow-up. A reusable baseline workflow is aligned under the caller that
+ *      sits in the scheduled line (api-fuzz under api-fuzz-nightly).
+ *   5. Destinations. A registry the publish lane's workflows name in their files (the
+ *      collector extracts domain names from each workflow) is drawn inside github.com but
+ *      outside the account box, to the left of it — ghcr.io today, with the package icon —
+ *      with a "pushes" edge from every workflow that names it. It is
  *      derived from the YAML, so it is on the board before the registry's contents can be
  *      listed (GitHub Packages is closed to App credentials; req-github-core-packages); the
  *      package nodes fill it in once a token is placed.
@@ -52,7 +61,7 @@
 
 import {projectNested} from "/static/tap_viz/js/runtime/nested-projection.js";
 import {applyStandardChrome, placeParentLabels, parentLabelInset} from "/static/tap_viz/js/runtime/chrome.js";
-import {settleStacks} from "/static/tap_viz/js/runtime/stack.js";
+import {applyStack, settleStacks} from "/static/tap_viz/js/runtime/stack.js";
 
 const GRYPHON_URL = "/api/v1/gryphon/execute";
 
@@ -72,6 +81,8 @@ const T = {
     issuer: "identity_core__oidc_issuer",
     placeholder: "_machinery_placeholder",
     registry: "_tap_registry",
+    chain: "_tap_chain",
+    artifact: "_tap_artifact_kind",
     pipelines: "_tap_pipelines",
     toprow: "_tap_toprow",
     lane: "_tap_lane",
@@ -95,7 +106,9 @@ const SYN = {
     hostsThirdParty: "_MACHINERY_HOSTS_THIRD_PARTY",
     hasPlaceholder: "_MACHINERY_HAS_PLACEHOLDER",
     hasRef: "_MACHINERY_HAS_REF",
-    hasOutput: "_TAP_HAS_OUTPUT",
+    hostsRegistry: "_TAP_HOSTS_REGISTRY",
+    hasChain: "_TAP_HAS_CHAIN",
+    emits: "_TAP_EMITS_ARTIFACT",
     pushesTo: "_TAP_PUSHES_TO",
     hasBlock: "_TAP_HAS_BLOCK",
     hasLane: "_TAP_HAS_LANE",
@@ -118,6 +131,8 @@ const BASE_SIZES = {
     [T.issuer]: {width: 200, height: 40},
     [T.placeholder]: {width: 190, height: 30},
     [T.registry]: {width: 190, height: 44},
+    [T.chain]: {width: 200, height: 60},
+    [T.artifact]: {width: 180, height: 34},
     [T.pipelines]: {width: 240, height: 60},
     [T.toprow]: {width: 240, height: 60},
     ...Object.fromEntries(LANE_TYPES.map((t) => [t, {width: 240, height: 60}])),
@@ -127,6 +142,9 @@ const DEFAULTS = {flow: "rtl", column_gap: 48, row_gap: 12};
 
 //: Registries a workflow file can name. Matched against the collector's extracted domain names,
 //: publish lane only — a domain in a scanner's file is an input, not a destination.
+const PACKAGE_ICON = "/static/github_core/icons/github-package.svg";
+const ARTIFACT_ICON = "/static/github_core/icons/actions-artifact.svg";
+
 const REGISTRY_RE = /^(ghcr\.io|docker\.io|index\.docker\.io|quay\.io|public\.ecr\.aws|[\w.-]+\.dkr\.ecr\.[\w-]+\.amazonaws\.com|[\w.-]+\.pkg\.dev|mcr\.microsoft\.com|registry\.npmjs\.org|upload\.pypi\.org)$/;
 
 //: Trigger precedence — the FIRST of these a workflow declares is its primary trigger.
@@ -170,7 +188,9 @@ export async function execute(context) {
         const plan = _classify(workflows, facts, warn);
         _stampSchedule(plan, warn);
         _addLanes(cy, repo, plan);
+        _addChains(cy, repo, plan);
         _addRegistries(cy, repo, plan, fullName);
+        _addArtifacts(cy, plan, await _fetchArtifacts(fullName, warn), fullName);
         _drawRelationships(cy, plan);
         plans.push(plan);
         laned += plan.size;
@@ -191,7 +211,9 @@ export async function execute(context) {
             {name: "platform-hosts-third-party", gryphon: `(parent:${T.platform})-[:${SYN.hostsThirdParty}]->(child)`},
             {name: "account-owns-repository", gryphon: `(parent:${T.account})-[:${E.ownsRepo}]->(child:${T.repository})`},
             {name: "repository-has-block", gryphon: `(parent:${T.repository})-[:${SYN.hasBlock}]->(child:${T.pipelines})`},
-            {name: "repository-has-output", gryphon: `(parent:${T.repository})-[:${SYN.hasOutput}]->(child:${T.registry})`},
+            {name: "platform-hosts-registry", gryphon: `(parent:${T.platform})-[:${SYN.hostsRegistry}]->(child:${T.registry})`},
+            {name: "lane-has-chain", gryphon: `(parent)-[:${SYN.hasChain}]->(child:${T.chain})`},
+            {name: "workflow-emits-artifact", gryphon: `(parent:${T.workflow})-[:${SYN.emits}]->(child:${T.artifact})`},
             {name: "block-has-toprow", gryphon: `(parent:${T.pipelines})-[:${SYN.hasBlock}]->(child:${T.toprow})`},
             {name: "block-has-lane", gryphon: `(parent)-[:${SYN.hasLane}]->(child)`},
             {name: "lane-holds-workflow", gryphon: `(parent)-[:${SYN.laneHolds}]->(child:${T.workflow})`},
@@ -209,6 +231,7 @@ export async function execute(context) {
             [T.repository]: {top: 18 + labelInset, right: 28, bottom: 28, left: 28},
             [T.pipelines]: {top: 6, right: 6, bottom: 6, left: 6},
             [T.toprow]: {top: 6, right: 6, bottom: 6, left: 6},
+            [T.chain]: {top: 4, right: 4, bottom: 4, left: 4},
             ...Object.fromEntries(LANE_TYPES.map((t) => [t, {top: 10 + labelInset, right: 16, bottom: 12, left: 16}])),
             [T.workflow]: {top: 6 + labelInset, right: 14, bottom: 14, left: 14},
         },
@@ -219,6 +242,7 @@ export async function execute(context) {
             tiers: [
                 {name: "third-parties", entityTypes: [T.app, T.issuer, T.runner]},
                 {name: "account", entityTypes: [T.account]},
+                {name: "registries", entityTypes: [T.registry]},
             ],
         },
         innerLayouts: {
@@ -238,8 +262,13 @@ export async function execute(context) {
             // The top row: publish (outputs stage) to the left of the gate (pipelines stage).
             [T.toprow]: ranked("order", {columnLayout: "stack"}),
             // Inside a lane: workflow boxes in a row, first-fired toward the sources side.
-            [LANE_TYPE.gate]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
-            [LANE_TYPE.publish]: ranked("order", {columnLayout: "flow", flowAspect: 2.2}),
+            // The gate: the review chain beside product-lines on one row, the dynamics beneath.
+            [LANE_TYPE.gate]: ranked("order", {columnLayout: "flow", flowAspect: 5.0}),
+            // Publish reads publish-images, then publish-release-tags | release-please beneath it
+            // (label order is the chain order here; a narrow aspect breaks after the wide box).
+            [LANE_TYPE.publish]: ranked("label", {columnLayout: "flow", flowAspect: 1.0}),
+            // A workflow_run chain: one box per row, upstream first.
+            [T.chain]: {name: "flow", aspect: 0.1, gap: 10, sort: "input"},
             [LANE_TYPE.fleet]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
             [LANE_TYPE.baseline]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
             // The scheduled line: one row, by time of day.
@@ -248,11 +277,187 @@ export async function execute(context) {
         },
     });
     warnings.push(...(result.warnings || []));
-    for (const plan of plans) _mirrorPublishJobs(cy, plan);
+    for (const plan of plans) {
+        _mirrorPublishJobs(cy, plan);
+        _alignBaseline(cy, plan);
+        _stackArtifacts(cy, plan);
+    }
+    _placeRegistriesLeft(cy);
     placeParentLabels(cy, {anchor: "upper-left", inset: 8, parentFontSize: chrome.parentFontSize, parentFontWeight: chrome.parentFontWeight});
     settleStacks(cy);
     _style(cy);
     return {warnings};
+}
+
+// ---------------------------------------------------------------------------
+// Post passes: baseline under its scheduled caller; registries left of the account box
+// ---------------------------------------------------------------------------
+
+function _shiftWithDescendants(cy, node, dx, dy) {
+    if (!dx && !dy) return;
+    const ids = new Set([node.id()]);
+    let frontier = [node.id()];
+    while (frontier.length) {
+        const next = [];
+        for (const pid of frontier) {
+            cy.nodes(`[_viewport_parent = "${pid}"]`).forEach((n) => { if (!ids.has(n.id())) { ids.add(n.id()); next.push(n.id()); } });
+        }
+        frontier = next;
+    }
+    ids.forEach((id) => { const n = cy.getElementById(id); if (!n.empty()) n.shift({x: dx, y: dy}); });
+}
+
+function _alignBaseline(cy, plan) {
+    const baseline = [...plan.values()].filter((i) => i.lane === "baseline");
+    if (!baseline.length) return;
+    const first = baseline[0];
+    const caller = first.calledBy.find((c) => c.lane === "scheduled") || first.calledBy[0];
+    if (!caller) return;
+    const laneNode = cy.getElementById(String(first.node.data("_viewport_parent") || ""));
+    if (laneNode.empty()) return;
+    _shiftWithDescendants(cy, laneNode, caller.node.position("x") - first.node.position("x"), 0);
+}
+
+function _placeRegistriesLeft(cy) {
+    const registries = cy.nodes(".tap-registry");
+    if (registries.empty()) return;
+    const platform = cy.nodes(`[entity_type = "${T.platform}"]`).first();
+    const account = cy.nodes(`[entity_type = "${T.account}"]`).first();
+    if (platform.empty() || account.empty()) return;
+    const gap = 70;
+    const accountLeft = account.position("x") - account.width() / 2;
+    // Line the registries up with the publish lane when there is one, else with the account's centre.
+    const publish = cy.nodes(".tap-lane-publish").first();
+    let y = publish.nonempty() ? publish.position("y") : account.position("y");
+    let leftMost = accountLeft;
+    registries.forEach((reg) => {
+        const x = accountLeft - gap - reg.width() / 2;
+        reg.position({x, y});
+        y += reg.height() + 16;
+        leftMost = Math.min(leftMost, x - reg.width() / 2);
+    });
+    // Grow github.com leftwards to keep them inside it.
+    const platLeft = platform.position("x") - platform.width() / 2;
+    const need = platLeft - (leftMost - 40);
+    if (need > 0) {
+        platform.style({"width": platform.width() + need});
+        platform.position({x: platform.position("x") - need / 2, y: platform.position("y")});
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Artifacts — what each workflow's runs left behind, by kind
+// ---------------------------------------------------------------------------
+
+async function _fetchArtifacts(fullName, warn) {
+    try {
+        return await _gryphonRows(
+            [
+                `MATCH (w:${T.workflow})<-[:EXECUTES_WORKFLOW__github_core]-(r:github_core__github_actions_run)-[:UPLOADS_ARTIFACT__github_core]->(a:github_core__actions_artifact)`,
+                "WHERE w.data.full_name = $repo",
+                "RETURN w.entity_id AS wf, a.data.name AS name, a.data.expired AS expired, a.data.size_in_bytes AS size, r.data.run_id AS run_id",
+            ],
+            {repo: fullName},
+        );
+    } catch (err) {
+        warn("tap_lanes_artifacts", `${fullName}: ${err.message}`);
+        return [];
+    }
+}
+
+//: Fold the variable parts of an upload name into one kind: long hex, 4+ character upper/digit
+//: tokens (matrix ids, buildx records) and bare numbers.
+function _artifactKind(name) {
+    return String(name || "")
+        .replace(/[0-9a-f]{7,}/gi, "*")
+        .replace(/[A-Z0-9]{4,}/g, "*")
+        .replace(/\d+/g, "#");
+}
+
+function _addArtifacts(cy, plan, rows, fullName) {
+    const byWf = new Map(); // wfId → Map(kind → {count, expired, latestRun})
+    for (const row of rows) {
+        const wf = String(row.wf || "");
+        if (!plan.has(wf)) continue;
+        const kind = _artifactKind(row.name);
+        if (!byWf.has(wf)) byWf.set(wf, new Map());
+        const kinds = byWf.get(wf);
+        const k = kinds.get(kind) || {count: 0, expired: 0, latestRun: 0};
+        k.count += 1;
+        if (row.expired) k.expired += 1;
+        k.latestRun = Math.max(k.latestRun, Number(row.run_id) || 0);
+        kinds.set(kind, k);
+    }
+    for (const [wf, kinds] of byWf) {
+        const item = plan.get(wf);
+        // The artifact column sits after the last job column inside the workflow box.
+        const jobs = cy.nodes(`[_viewport_parent = "${wf}"]`);
+        const lastStage = jobs.reduce((m, j) => Math.max(m, Number(j.data("_stage")) || 0), 0);
+        const sorted = [...kinds.entries()].sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]));
+        item.artifactIds = [];
+        sorted.forEach(([kind, k], i) => {
+            const id = `${T.artifact}:${wf}:${i}`;
+            cy.add({
+                group: "nodes",
+                data: {id, entity_type: T.artifact, label: `${kind} ×${k.count}`, shape: "round-rectangle", icon_url: ARTIFACT_ICON, fill_color: "#fffbea", border_color: "#a15c00", label_color: "#5a3d00",
+                       _stage: lastStage + 1, _order: i, _count: k.count, _expired: k.expired, _kind: kind,
+                       nav_url: k.latestRun ? `https://github.com/${fullName}/actions/runs/${k.latestRun}` : "", nav_external: !!k.latestRun},
+                classes: "tap-artifact",
+            });
+            cy.add({group: "edges", data: {id: `${SYN.emits}:${id}`, source: wf, target: id, edge_type: SYN.emits}, classes: "tap-lane-containment"});
+            item.artifactIds.push(id);
+        });
+        item.artifactTotal = sorted.reduce((s, [, k]) => s + k.count, 0);
+    }
+}
+
+function _stackArtifacts(cy, plan) {
+    for (const item of plan.values()) {
+        const ids = item.artifactIds || [];
+        if (ids.length < 2) continue;
+        const members = cy.collection(ids.map((id) => cy.getElementById(id)));
+        applyStack(cy, {
+            members,
+            representative: members[0],
+            label: `${item.artifactTotal} artifacts · ${ids.length} kinds`,
+            stackId: `stack:artifacts:${item.id}`,
+            direction: "down",
+        });
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Chains: workflows joined by workflow_run share a vertical frame inside their lane
+// ---------------------------------------------------------------------------
+
+function _addChains(cy, repo, plan) {
+    const seen = new Set();
+    for (const item of plan.values()) {
+        if (seen.has(item.id) || item.runsAfter.length) continue; // start from chain heads only
+        // Walk downstream within the same lane.
+        const chain = [item];
+        let frontier = [item];
+        while (frontier.length) {
+            const next = [];
+            for (const up of frontier) {
+                for (const down of plan.values()) {
+                    if (down.lane === up.lane && down.runsAfter.includes(up) && !chain.includes(down)) { chain.push(down); next.push(down); }
+                }
+            }
+            frontier = next;
+        }
+        if (chain.length < 2) continue;
+        chain.forEach((c) => seen.add(c.id));
+        const laneId = `${T.lane}:${repo.id()}:${item.lane}`;
+        const id = `${T.chain}:${item.id}`;
+        cy.add({group: "nodes", data: {id, entity_type: T.chain, label: "", shape: "round-rectangle", _stage: STAGE.pipelines, _order: Math.min(...chain.map((c) => Number(c.node.data("_order")) || 0))}, classes: "tap-frame tap-chain"});
+        cy.add({group: "edges", data: {id: `${SYN.hasChain}:${id}`, source: laneId, target: id, edge_type: SYN.hasChain}, classes: "tap-lane-containment"});
+        for (const c of chain) {
+            // Re-parent from the lane to the chain: drop the lane's containment edge, add the chain's.
+            cy.remove(cy.getElementById(`${SYN.laneHolds}:${c.id}`));
+            cy.add({group: "edges", data: {id: `${SYN.laneHolds}:${c.id}`, source: id, target: c.id, edge_type: SYN.laneHolds}, classes: "tap-lane-containment"});
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -494,11 +699,12 @@ function _addRegistries(cy, repo, plan, fullName) {
         const navUrl = domain === "ghcr.io" && owner ? `https://github.com/orgs/${owner}/packages?repo_name=${encodeURIComponent(repoName)}` : "";
         cy.add({
             group: "nodes",
-            data: {id, entity_type: T.registry, label: `${domain} · registry`, shape: "round-rectangle", _stage: STAGE.outputs, _order: order++, _registry: domain,
+            data: {id, entity_type: T.registry, label: domain, shape: "round-rectangle", icon_url: PACKAGE_ICON, fill_color: "#ffffff", border_color: "#1b1d22", label_color: "#1b1d22", _stage: STAGE.outputs, _order: order++, _registry: domain,
                    nav_url: navUrl, nav_external: !!navUrl, _pushed_by: items.map((i) => i.name).join(", ")},
             classes: "tap-registry",
         });
-        cy.add({group: "edges", data: {id: `${SYN.hasOutput}:${id}`, source: repo.id(), target: id, edge_type: SYN.hasOutput}, classes: "tap-lane-containment"});
+        const platform = cy.nodes(`[entity_type = "${T.platform}"]`).first();
+        cy.add({group: "edges", data: {id: `${SYN.hostsRegistry}:${id}`, source: platform.nonempty() ? platform.id() : repo.id(), target: id, edge_type: SYN.hostsRegistry}, classes: "tap-lane-containment"});
         for (const item of items) {
             cy.add({group: "edges", data: {id: `${SYN.pushesTo}:${item.id}:${domain}`, source: item.id, target: id, edge_type: SYN.pushesTo, label: "pushes"}, classes: "tap-lane-edge tap-lane-pushes"});
         }
@@ -537,7 +743,11 @@ function _style(cy) {
         .selector(".tap-lane-edge")
         .style({"curve-style": "unbundled-bezier", "width": 1.5, "line-color": "#0e6b64", "target-arrow-color": "#0e6b64", "target-arrow-shape": "triangle", "arrow-scale": 0.9, "font-size": "9px", "color": "#0a4f4a", "text-background-color": "#ffffff", "text-background-opacity": 0.8, "text-background-padding": "2px", "z-index": 100})
         .selector(".tap-registry")
-        .style({"background-color": "#1b1d22", "background-opacity": 0.9, "border-width": 2, "border-color": "#1b1d22", "color": "#ffffff", "font-size": "11px", "font-weight": 600, "text-valign": "center", "text-halign": "center", "text-wrap": "ellipsis", "text-max-width": "170px"})
+        .style({"label": "data(label)", "text-opacity": 1, "text-valign": "center", "text-halign": "center", "text-wrap": "ellipsis", "text-max-width": "160px",
+                "background-color": "#ffffff", "background-opacity": 1, "border-width": 2, "border-color": "#1b1d22", "color": "#1b1d22", "font-size": "12px", "font-weight": 600})
+        .selector(".tap-artifact")
+        .style({"label": "data(label)", "text-opacity": 1, "text-valign": "center", "text-halign": "center", "text-wrap": "ellipsis", "text-max-width": "150px",
+                "background-color": "#fffbea", "background-opacity": 1, "border-width": 1, "border-color": "#a15c00", "color": "#5a3d00", "font-size": "10px"})
         .selector(".tap-lane-pushes")
         .style({"line-style": "solid", "width": 2, "label": "data(label)", "line-color": "#1b1d22", "target-arrow-color": "#1b1d22"})
         .selector(".tap-lane-calls")
@@ -553,5 +763,7 @@ function _clear(cy) {
     cy.remove(cy.nodes(".tap-lane"));
     cy.remove(cy.nodes(".tap-frame"));
     cy.remove(cy.nodes(".tap-registry"));
+    cy.remove(cy.nodes(".tap-artifact"));
+    cy.remove(cy.nodes(".tap-chain"));
     cy.nodes("[_label_base]").forEach((n) => n.data("label", n.data("_label_base")));
 }
