@@ -1,0 +1,186 @@
+{
+  "metadata": {
+    "grift_version": "0"
+  },
+  "_reserved": {},
+  "batches": [
+    {
+      "batch_entity": {
+        "entity_id": "01a087a8-1e02-77d8-ba74-51eaff135d11",
+        "entity_type": "batch",
+        "name": "git-serious double-tap: tap repository page v0.1.0",
+        "dimensions": {}
+      },
+      "batch_node": {
+        "source": "tap_plugin.git_serious_double_tap.grift.tap_repository",
+        "name": "git-serious double-tap: tap repository page v0.2.0",
+        "description": "The tap repository's own page: one page node and five USES_PANEL edges onto git-serious's shared panels, each edge pinning repo=unified-systems-com/tap as a fixed input (tap#359). No panel or search of its own (git-serious-double-tap#11 retired the v0.1.0 copies)."
+      },
+      "nodes": [
+        {
+          "entity": {
+            "entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "entity_type": "page",
+            "name": "tap",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "tap",
+            "slug": "/double-tap/tap",
+            "description": "unified-systems-com/tap, the repository that builds TAP, on its own page. The page owns nothing but its slots: every panel is git-serious's — the generic repository page's identity, machinery and open-pull-requests panels and the landing's status wall and not-observed table — mounted by id, with the page's one privilege carried on each USES_PANEL edge as a fixed input (`inputs: {repo: \"unified-systems-com/tap\"}`, tap#359) that the page lays over the URL when it builds the panel's address. Polish to a panel lands here the moment it lands on git-serious; ?repo= on this page is ignored because the fixed input wins (git-serious-double-tap#11).",
+            "layout": {
+              "full_bleed": true,
+              "columns": {
+                "col-1": {
+                  "width": "1fr",
+                  "rows": {
+                    "row-1": {
+                      "panel-id": "identity",
+                      "height": "auto"
+                    },
+                    "row-2": {
+                      "panel-id": "machinery",
+                      "height": "60vh"
+                    },
+                    "row-3": {
+                      "panel-id": "pulls",
+                      "height": "auto"
+                    },
+                    "row-4": {
+                      "panel-id": "status-wall",
+                      "height": "auto"
+                    },
+                    "row-5": {
+                      "panel-id": "not-observed",
+                      "height": "auto"
+                    }
+                  }
+                }
+              }
+            },
+            "nav_weight": 112
+          }
+        }
+      ],
+      "edges": [
+        {
+          "entity": {
+            "entity_id": "01a087fa-f1ab-7175-9952-7d7c9a03866e",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL identity (git-serious's panel, repo pinned to unified-systems-com/tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a08766-f51c-72d0-a9f1-ae8199509ee3",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "identity"
+              },
+              "inputs": {
+                "repo": "unified-systems-com/tap"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087fa-f1ab-7175-9952-7d7daf8fe007",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL machinery (git-serious's panel, repo pinned to unified-systems-com/tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a08766-f51c-72d0-a9f1-ae8227d07bbf",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "machinery"
+              },
+              "inputs": {
+                "repo": "unified-systems-com/tap"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087fa-f1ab-7175-9952-7d7e25f4a3c7",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL pulls (git-serious's panel, repo pinned to unified-systems-com/tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a08766-f51c-72d0-a9f1-ae84a69ffbdd",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "pulls"
+              },
+              "inputs": {
+                "repo": "unified-systems-com/tap"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087fa-f1ab-7175-9952-7d7f182655dc",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL status-wall (git-serious's panel, repo pinned to unified-systems-com/tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a0632f-38b6-7440-9de9-3d5a3dadeb2a",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "status-wall"
+              },
+              "inputs": {
+                "repo": "unified-systems-com/tap"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a087fa-f1ab-7175-9952-7d80ec0e9dca",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL not-observed (git-serious's panel, repo pinned to unified-systems-com/tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a0632f-38b6-7440-9de9-3d5ba8eadfc4",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "not-observed"
+              },
+              "inputs": {
+                "repo": "unified-systems-com/tap"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
