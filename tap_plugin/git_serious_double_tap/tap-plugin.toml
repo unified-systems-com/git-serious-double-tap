@@ -7,7 +7,9 @@ description = "The unified-systems-com instance configuration for git-serious: t
 # No code-import dependencies: the pages here mount git_serious's panels by entity id in GRIFT
 # edges. That is an INSTALL + SEED-ORDER dependency (pyproject `dependencies`; boot-profile
 # population order), not an import-time edge. See pyproject.toml.
-depends_on = []
+depends_on = [
+    { slug = "git_serious", note = "The tap page mounts git_serious's panels by id (git-serious-double-tap#11); the strip links to git_serious's pages." },
+]
 
 # Pure configuration — no crypto, no native deps (spec-fips.md, req-tap-plugin-manifest-v0-fips).
 [fips]
@@ -26,3 +28,8 @@ tap_repository = "grift/tap-repository.grift.json"
 name = "git_serious_double_tap"
 description = "unified-systems-com instance of git-serious: the product's closure + the double-tap plugin, seeded in order, collector fired against the org, landing page pinned to /double-tap (web.landing_entity_id + web.landing_slug)."
 sha256 = "fd532618260fa81ee3561acb874dc4541bd5ae4a68c6b0a3fb8c00d6724dc15c"
+
+[[boot.records]]
+name = "ci"
+description = "RESERVED NAME (req-boot-bootstrap-ci-record): the stack this plugin's own tests run in — depends_on closure + self, offline, credential-free. The consumer flips self to editable."
+sha256 = "4d387f8f7f346452b0b4f075cf53872560464ff3a9166474ef12b1692416b4ff"
