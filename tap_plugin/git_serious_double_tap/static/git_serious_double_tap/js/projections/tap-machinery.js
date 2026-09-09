@@ -258,7 +258,7 @@ export async function execute(context) {
             [LANE_TYPE.gate]: ranked("order", {columnLayout: "flow", flowAspect: 5.0}),
             // Publish reads publish-images, then publish-release-tags | release-please beneath it
             // (label order is the chain order here; a narrow aspect breaks after the wide box).
-            [LANE_TYPE.publish]: ranked("label", {columnLayout: "flow", flowAspect: 1.0}),
+            [LANE_TYPE.publish]: ranked("label", {columnLayout: "flow", flowAspect: 3.0}),
             // A workflow_run chain: one box per row, upstream first.
             [T.chain]: {name: "flow", aspect: 0.1, gap: 10, sort: "input"},
             [LANE_TYPE.fleet]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
