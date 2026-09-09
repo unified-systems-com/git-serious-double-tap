@@ -6,6 +6,9 @@
 .dts-collection { margin: 0; font-size: 12px; color: #57606a; }
 .dts-collection--stale { color: #9a6700; }
 .dts-collection--failed, .dts-collection--never { color: #cf222e; }
+.dts-refresh { margin-left: auto; font-size: 11px; color: #57606a; display: inline-flex; gap: 6px; align-items: center; }
+.dts-refresh-btn { border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; padding: 0 6px; cursor: pointer; font-size: 13px; line-height: 1.4; }
+.dts-refresh-left { min-width: 3ch; font-variant-numeric: tabular-nums; }
 .dts-error, .dts-empty { margin: 8px 0; color: #57606a; }
 .dts-error { color: #cf222e; }
 .dts-strip { display: flex; flex-direction: row; gap: 12px; overflow-x: auto; overflow-y: hidden; padding: 2px 2px 10px; scroll-snap-type: x proximity; }

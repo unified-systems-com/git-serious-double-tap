@@ -74,7 +74,7 @@
             "description": "One card per repository that had a pull request opened, pushed, merged or building in the last 24 hours, ordered by the organization's criticality property then by most recent movement. Each open PR is one line: passed-check count, failed-check names, pending-check names — evaluated against the PR's current head, reruns deduplicated. Says when the collection last succeeded and when it is stale or failed. Links: repository → repository view, PR → GitHub, results → the check. Built as double-tap code first (req-git-serious-double-tap-page-strip); the repeatable card mechanism graduates to tap_web later.",
             "view": "git_serious_double_tap/panels/demo_strip.html",
             "config": {
-              "refresh_seconds": 180
+              "refresh_seconds": 60
             }
           }
         }

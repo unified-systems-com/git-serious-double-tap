@@ -2,7 +2,7 @@
 double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbols carry the state
 (✓ passed · ✕ failed · ◷ pending · ⊘ other); colour is a second channel, never the only one.
 {% endcomment %}
-<section class="dts" aria-label="Repositories moving in the last {{ window_hours }} hours">
+<section class="dts" aria-label="Repositories moving in the last {{ window_hours }} hours"{% if refresh_seconds %} data-dts-refresh="{{ refresh_seconds }}"{% endif %}>
   <header class="dts-head">
     <h2 class="dts-title">Moving in the last {{ window_hours }} hours</h2>
     {% if collection %}
@@ -11,6 +11,9 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
         {{ collection.text }}
         {% if collection.last_success %}<time datetime="{{ collection.last_success|date:'c' }}">({{ collection.last_success|date:"H:i" }} UTC)</time>{% endif %}
       </p>
+    {% endif %}
+    {% if refresh_seconds %}
+      <span class="dts-refresh" data-dts-refresh-ui title="This strip re-fetches itself every {{ refresh_seconds }} s from the grid (the collector's schedule decides how fresh the grid is). ↻ refreshes now."></span>
     {% endif %}
   </header>
 
@@ -65,3 +68,33 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
     {% for item in navigation %}<a class="dts-nav-link" href="{{ item.href }}" title="{{ item.hint }}">{{ item.label }}</a>{% endfor %}
   </nav>
 </section>
+{% if refresh_seconds %}
+<script>
+(function () {
+  // Same shape as the table panel (panel-table.js _startAutoRefresh): re-fetch this panel's
+  // fragment through the enclosing page slot's hx-get on a timer, with a refresh-now button.
+  // The strip is the only card panel today; when the mechanism graduates into tap_web this
+  // block goes with it (req-git-serious-double-tap-page-strip).
+  var root = document.currentScript && document.currentScript.closest("section.dts");
+  if (!root) return;
+  var slot = root.closest("[hx-get]");
+  var ui = root.querySelector("[data-dts-refresh-ui]");
+  var seconds = parseInt(root.getAttribute("data-dts-refresh") || "", 10);
+  if (!slot || !ui || !(seconds > 0) || typeof htmx === "undefined") return;
+  var btn = document.createElement("button");
+  btn.type = "button"; btn.className = "dts-refresh-btn"; btn.textContent = "\u21bb";
+  btn.setAttribute("aria-label", "Refresh now");
+  var left = document.createElement("span"); left.className = "dts-refresh-left";
+  ui.appendChild(btn); ui.appendChild(left);
+  var remaining = seconds;
+  var refresh = function () { btn.disabled = true; btn.textContent = "\u27f3"; htmx.ajax("GET", slot.getAttribute("hx-get"), { target: slot, swap: "innerHTML" }); };
+  var timer = setInterval(function () {
+    if (!document.contains(root)) { clearInterval(timer); return; }   // fragment replaced
+    remaining -= 1; left.textContent = remaining > 0 ? remaining + "s" : "";
+    if (remaining <= 0) { remaining = seconds; refresh(); }
+  }, 1000);
+  left.textContent = seconds + "s";
+  btn.addEventListener("click", refresh);
+})();
+</script>
+{% endif %}

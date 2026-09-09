@@ -169,6 +169,9 @@ class DemoStripPanelType:
     def get_view_context(cls, panel: Panel, request: HttpRequest) -> dict[str, Any]:
         """Run the declared reads and fold them into cards; render the failure rather than a blank."""
         now = datetime.now(UTC)
+        config = dict(cls.config_defaults)
+        config.update(panel.config or {})
+        refresh_seconds = _positive_int(config.get("refresh_seconds"))
         try:
             env = _fetch(QUERIES)
         except (
@@ -183,6 +186,7 @@ class DemoStripPanelType:
                 "collection": None,
                 "navigation": NAVIGATION,
                 "window_hours": int(WINDOW.total_seconds() // 3600),
+                "refresh_seconds": refresh_seconds,
             }
         cards = build_cards(env, now=now)
         collection = collection_status(env.get("collection_jobs", {}), now=now)
@@ -192,7 +196,17 @@ class DemoStripPanelType:
             "collection": collection,
             "navigation": NAVIGATION,
             "window_hours": int(WINDOW.total_seconds() // 3600),
+            "refresh_seconds": refresh_seconds,
         }
+
+
+def _positive_int(value: Any) -> int:
+    """``config.refresh_seconds`` → seconds, or 0 (off) for anything that is not a positive number."""
+    try:
+        seconds = int(value)
+    except TypeError, ValueError:
+        return 0
+    return seconds if seconds > 0 else 0
 
 
 def _fetch(queries: dict[str, str]) -> dict[str, dict[str, Any]]:
