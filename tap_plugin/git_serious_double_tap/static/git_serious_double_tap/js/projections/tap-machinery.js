@@ -259,7 +259,7 @@ export async function execute(context) {
 // The scheduled line: time of day from the cron, on the label and in the order
 // ---------------------------------------------------------------------------
 
-const CRON_RE = /cron:\s*["']?\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/;
+const CRON_RE = /cron:[ \t]*["']?([^\s"']+)[ \t]+([^\s"']+)[ \t]+[^\s"']+[ \t]+[^\s"']+[ \t]+[^\s"']+/;
 
 function _stampSchedule(plan, warn) {
     for (const item of plan.values()) {
@@ -273,8 +273,8 @@ function _stampSchedule(plan, warn) {
             item.node.data("_order", 24 * 60);
             continue;
         }
-        const minute = parseInt(m[1], 10);
-        const hour = parseInt(m[2], 10);
+        const minute = Number.parseInt(m[1], 10);
+        const hour = Number.parseInt(m[2], 10);
         if (Number.isNaN(minute) || Number.isNaN(hour)) {
             warn("tap_lanes_cron_unparsed", `${item.name}: cron "${m[0]}" is not a fixed time of day`);
             item.node.data("_order", 24 * 60);
