@@ -47,7 +47,7 @@ loan, not a residence; its spec section names the graduation issue.
 | RID | Name | Status | Notes |
 | --- | --- | :---: | --- |
 | req-git-serious-double-tap-scope | [Instance-Only Scope](#instance-only-scope) | Implemented | Manifest + GRIFT only; install dep on git_serious; no models, edges, collectors or panel types |
-| req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` opens with the demo strip, then mounts git-serious's status wall, not-observed and gates panels by edge |
+| req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` is the demo strip alone; `/double-tap/status-wall` mounts git-serious's status wall and not-observed panels by edge |
 | req-git-serious-double-tap-page-strip | [Demo Strip](#demo-strip) | Implemented | One card per repository that moved in the last 24 hours: its open PRs with the check results of each PR's current head; collection freshness said out loud; navigation to the four git-serious views |
 | req-git-serious-double-tap-nongoals | [v0 Non-Goals](#v0-non-goals) | Implemented | What this plugin refuses to grow into |
 
@@ -79,25 +79,25 @@ RID: `req-git-serious-double-tap-page-home`
 
 Status: `Implemented`
 
-Route `/double-tap`, nav weight 110 (after git-serious's own pages). Row 1 is the plugin's own
-[demo strip](#demo-strip). Below it the page mounts three panels git_serious ships, by
-`USES_PANEL` edge whose target is the panel entity git_serious seeds:
+Two pages, minimal by design (George, 2026-09-09: "only exactly the pieces of content we care
+about right now — the cards").
 
-| Slot | Panel (git_serious) | Question it answers |
-| --- | --- | --- |
-| `status-wall` | Status wall | Is anything broken right now, across every repository? |
-| `not-observed` | Not observed in the collected window | Which workflows could we not say anything about? |
-| `gates` | The gates | What gates each default branch, and what can we not see? |
+| Route | Nav weight | Content |
+| --- | :---: | --- |
+| `/double-tap` | 110 | The [demo strip](#demo-strip) and nothing else: the cards, the collection's freshness, four links. |
+| `/double-tap/status-wall` | 111 | git-serious's status wall (every workflow's latest run) and the not-observed workflows, mounted by `USES_PANEL` edge — the drill-down the strip links to. |
 
-The page carries no search or projection of its own; its one panel is the incubated strip. It is
-the running example's first screen and the place target-3 pages (map unified-systems) attach as
-they are found.
+The gates panel left the landing in v0.3.0; the gate view (`/git-serious/gate`) is one of the four
+links. The landing carries no search or projection of its own; its one panel is the incubated
+strip. It is the running example's first screen and the place target-3 pages (map
+unified-systems) attach as they are found.
 
 #### Implementation
 
-`tap_plugin/git_serious_double_tap/grift/home.grift.json` — one batch (v0.2.0): the page node, the
-strip panel node (`01a08375-96e8-77ea-bf33-1d07f1ed54cc`, slug `double-tap-demo-strip`) and four
-`USES_PANEL` edges. Panel targets: status wall `01a0632f-38b6-7440-9de9-3d5a3dadeb2a`, not-observed
+`tap_plugin/git_serious_double_tap/grift/home.grift.json` — one batch (v0.3.0): two page nodes
+(`/double-tap` `01a081d1-f90f-76ff-b882-491af67b9d4b`, `/double-tap/status-wall`
+`01a08670-50b0-76d7-9593-26d6dd016f7a`), the strip panel node (`01a08375-96e8-77ea-bf33-1d07f1ed54cc`,
+slug `double-tap-demo-strip`) and three `USES_PANEL` edges. Panel targets: status wall `01a0632f-38b6-7440-9de9-3d5a3dadeb2a`, not-observed
 `01a0632f-38b6-7440-9de9-3d5ba8eadfc4`, gates `01a067e1-8266-71e1-bb86-fba4947ee6a2` (from
 git_serious's `landing.grift.json`; ids are stable across its re-publishes).
 
@@ -105,8 +105,8 @@ git_serious's `landing.grift.json`; ids are stable across its re-publishes).
 
 | ACID | Title | Status | Description | Notes |
 | --- | --- | :---: | --- | --- |
-| req-git-serious-double-tap-page-home-1 | Route Serves | Implemented | `GET /double-tap` on a booted git_serious instance with this plugin seeded returns 200 and renders the three slots. | |
-| req-git-serious-double-tap-page-home-2 | Composition Plus One | Implemented | The bundle's nodes are the page and the strip panel; every other edge targets a git_serious-seeded panel, and the import reports no dangling edge when git_serious seeded first. | v0.1.0 read "only node is the page"; superseded by the incubator rule. |
+| req-git-serious-double-tap-page-home-1 | Routes Serve | Implemented | `GET /double-tap` renders the strip slot alone; `GET /double-tap/status-wall` renders the two git_serious slots; both 200 on a booted git_serious instance with this plugin seeded. | |
+| req-git-serious-double-tap-page-home-2 | Composition Plus One | Implemented | The bundle's nodes are the two pages and the strip panel; every other edge targets a git_serious-seeded panel, and the import reports no dangling edge when git_serious seeded first. | v0.1.0 read "only node is the page"; superseded by the incubator rule. |
 
 ### Demo Strip
 ----
@@ -119,9 +119,15 @@ Issue: unified-systems-com/git-serious-double-tap#6 (Codex brief 2026-09-08, cut
 filed when the second card panel appears, not before.
 
 The first screen of the running example: which repositories are moving toward the demo, their
-open pull requests, and which checks pass or fail on each PR's **current head**. One horizontal
-row of cards, scrolling sideways when wider than the page. Below the strip, links to the four
-git-serious views (organization, repository machinery, the gate, the status wall as drill-down).
+open pull requests, and which checks pass or fail on each PR's **current head**. Cards wrap like
+columns of text — nothing scrolls sideways (v0.3.0; v0.2.0 was one scrolling row). Below the cards,
+links to the four views (organization, repository machinery, the gate, the status wall page).
+
+**Typography** (v0.3.0, the Tufte pass): a serif page, hairline rules instead of boxes, no fills
+and no badges; the repository name in small caps, criticality as a word, the PR number in tabular
+grey; colour only as a second channel on the two words that carry state — failed (red) and
+pending (ochre) — with ✓ ✕ ◷ ⊘ beside them so the state survives without colour. The data is the
+design; chrome that does not say something about a repository is absent.
 
 **Selection** — a repository is a card when, in the last 24 hours, one of its pull requests was
 opened or merged, its head commit was committed (the `PROPOSES_COMMIT` join onto git_core's

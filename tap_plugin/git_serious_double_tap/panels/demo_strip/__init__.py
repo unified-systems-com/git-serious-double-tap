@@ -81,8 +81,8 @@ NAVIGATION: list[dict[str, str]] = [
     },
     {
         "label": "Status wall",
-        "href": "/git-serious/workflow",
-        "hint": "Every workflow's latest run — the drill-down",
+        "href": "/double-tap/status-wall",
+        "hint": "Every workflow's latest run, and the ones not observed — the drill-down",
     },
 ]
 

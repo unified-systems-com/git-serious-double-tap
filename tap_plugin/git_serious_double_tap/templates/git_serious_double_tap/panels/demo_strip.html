@@ -24,7 +24,7 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
       {% if collection and collection.state == "never" %}Nothing to show until a collection succeeds.{% else %}No repository had a pull request opened, pushed, merged or building in the last {{ window_hours }} hours.{% endif %}
     </p>
   {% else %}
-    <div class="dts-strip" role="list">
+    <div class="dts-strip" role="list" aria-label="Repositories">
       {% for card in cards %}
         <article class="dts-card dts-card--{{ card.criticality }}" role="listitem">
           <header class="dts-card-head">
@@ -38,7 +38,7 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
                   <a class="dts-pr" href="{{ row.html_url }}" target="_blank" rel="noopener" title="#{{ row.number }} {{ row.title }}{% if row.head_sha %} · head {{ row.head_sha|slice:':7' }}{% endif %}" tabindex="0">
                     <span class="dts-num">#{{ row.number }}</span>
                     <span class="dts-pr-title">{{ row.title }}</span>
-                    {% if row.is_draft %}<span class="dts-draft" title="Draft pull request">draft</span>{% endif %}
+                    {% if row.is_draft %}<span class="dts-draft">draft</span>{% endif %}
                   </a>
                   <span class="dts-results">
                     {% if row.checks_state == "unobservable" %}
