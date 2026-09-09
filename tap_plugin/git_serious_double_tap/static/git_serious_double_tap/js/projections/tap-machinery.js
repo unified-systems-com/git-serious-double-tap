@@ -16,14 +16,19 @@
  *      baseline. A workflow_call workflow whose callers span more than one lane is the
  *      reusable baseline; one called from a single lane (or from other repositories) is
  *      fleet. A workflow_run workflow inherits its upstream's lane. A dispatch-only
- *      workflow takes the lane of the first local workflow it calls.
- *   2. Lanes as containers. Synthetic lane nodes sit between the repository and its
- *      workflows (repository ⊃ lane ⊃ workflow), then `projectNested` runs again with the
- *      base configuration plus the lane level. Lanes stack in the pipelines column in the
- *      cardinal order (gate on top, then publish, scheduled, fleet, baseline); sources stay
- *      on the right and outputs on the left because the repository's ranked layout is the
- *      base's own. (Publish beside the gate rather than beneath it is the next cut — it
- *      needs a two-column lane row the natural layouts do not offer yet.)
+ *      workflow takes the lane of the first local workflow it calls, else fleet.
+ *   2. Lanes as containers, arranged by the cardinal map (George's mock, 2026-09-09).
+ *      Synthetic containers sit between the repository and its workflows and
+ *      `projectNested` runs again with the base configuration plus those levels:
+ *          repository ⊃ pipelines block ⊃ { top row ⊃ { publish lane, gate lane },
+ *                                            scheduled lane, fleet lane, baseline lane }
+ *      The top row is a ranked layout so publish sits to the LEFT of the gate (its stage is
+ *      the outputs side); the block is tiered rows so the scheduled lane is one horizontal
+ *      line under the top row, ordered by time of day with the time on each label, and the
+ *      fleet and baseline lanes sit beneath it. Sources stay on the right and outputs on the
+ *      left because the repository's ranked layout is the base's own. Jobs inside the
+ *      publish lane's workflows read left to right (mirrored after the pass), the way the
+ *      publish chain is read.
  *   3. Cross-lane relationships the base picture cannot draw: `uses:` of a local reusable
  *      workflow and `workflow_run` chaining, as synthetic dashed / dotted edges.
  *
@@ -60,8 +65,17 @@ const T = {
     runner: "github_core__github_runner",
     issuer: "identity_core__oidc_issuer",
     placeholder: "_machinery_placeholder",
+    pipelines: "_tap_pipelines",
+    toprow: "_tap_toprow",
     lane: "_tap_lane",
 };
+//: One entity type per lane so the tiered rows can tell them apart (they are matched by type).
+const LANE_TYPE = {
+    gate: "_tap_lane_gate", publish: "_tap_lane_publish", scheduled: "_tap_lane_scheduled",
+    fleet: "_tap_lane_fleet", baseline: "_tap_lane_baseline",
+};
+const LANE_TYPES = Object.values(LANE_TYPE);
+const isLaneType = (t) => LANE_TYPES.includes(t);
 const E = {
     hostsAccount: "HOSTS_ACCOUNT__github_core",
     ownsRepo: "OWNS_REPO__github_core",
@@ -74,6 +88,7 @@ const SYN = {
     hostsThirdParty: "_MACHINERY_HOSTS_THIRD_PARTY",
     hasPlaceholder: "_MACHINERY_HAS_PLACEHOLDER",
     hasRef: "_MACHINERY_HAS_REF",
+    hasBlock: "_TAP_HAS_BLOCK",
     hasLane: "_TAP_HAS_LANE",
     laneHolds: "_TAP_LANE_HOLDS_WORKFLOW",
     calls: "_TAP_CALLS_WORKFLOW",
@@ -93,7 +108,9 @@ const BASE_SIZES = {
     [T.runner]: {width: 180, height: 40},
     [T.issuer]: {width: 200, height: 40},
     [T.placeholder]: {width: 190, height: 30},
-    [T.lane]: {width: 240, height: 60},
+    [T.pipelines]: {width: 240, height: 60},
+    [T.toprow]: {width: 240, height: 60},
+    ...Object.fromEntries(LANE_TYPES.map((t) => [t, {width: 240, height: 60}])),
 };
 const DEFAULTS = {flow: "rtl", column_gap: 48, row_gap: 12};
 // ---- end of the restated base ----------------------------------------------------------
@@ -101,13 +118,14 @@ const DEFAULTS = {flow: "rtl", column_gap: 48, row_gap: 12};
 //: Trigger precedence — the FIRST of these a workflow declares is its primary trigger.
 const PRIMARY = ["pull_request", "pull_request_target", "merge_group", "push", "workflow_run", "schedule", "workflow_call", "workflow_dispatch"];
 
-//: The five lanes in cardinal order, top to bottom inside the pipelines column.
+//: The five lanes. `row` places a lane in the pipelines block (0 = the top row beside the gate);
+//: `stage` orders the top row (rtl: the outputs side is the left, so publish is stage 2).
 const LANES = {
-    gate: {order: 0, label: "PR gate — every change rolls through here"},
-    publish: {order: 1, label: "Publish — images, release, tags"},
-    scheduled: {order: 2, label: "Scheduled — on a clock, against main"},
-    fleet: {order: 3, label: "Fleet — called from the plugin repositories"},
-    baseline: {order: 4, label: "Reusable baseline — called by more than one lane"},
+    gate: {row: 0, stage: STAGE.pipelines, label: "PR gate — every change rolls through here"},
+    publish: {row: 0, stage: STAGE.outputs, label: "Publish — images, release, tags"},
+    scheduled: {row: 1, stage: STAGE.pipelines, label: "Scheduled — on a clock, against main (UTC)"},
+    fleet: {row: 2, stage: STAGE.pipelines, label: "Fleet — called from the plugin repositories"},
+    baseline: {row: 3, stage: STAGE.pipelines, label: "Reusable baseline — called by more than one lane"},
 };
 
 export async function execute(context) {
@@ -126,6 +144,7 @@ export async function execute(context) {
     const cfg = _readConfig(projection);
     const direction = cfg.flow === "ltr" ? "ltr" : "rtl";
     let laned = 0;
+    const plans = [];
     for (const repo of repos) {
         const fullName = repo.data("_full_name") || repo.data("label") || "";
         const workflows = cy.nodes(`[entity_type = "${T.workflow}"]`).filter((n) => n.data("_viewport_parent") === repo.id());
@@ -135,8 +154,10 @@ export async function execute(context) {
         }
         const facts = await _fetchWorkflowFacts(fullName, warn);
         const plan = _classify(workflows, facts, warn);
+        _stampSchedule(plan, warn);
         _addLanes(cy, repo, plan);
         _drawRelationships(cy, plan);
+        plans.push(plan);
         laned += plan.size;
     }
     if (!laned) return {warnings};
@@ -154,8 +175,10 @@ export async function execute(context) {
             {name: "platform-hosts-account", gryphon: `(parent:${T.platform})-[:${E.hostsAccount}]->(child:${T.account})`},
             {name: "platform-hosts-third-party", gryphon: `(parent:${T.platform})-[:${SYN.hostsThirdParty}]->(child)`},
             {name: "account-owns-repository", gryphon: `(parent:${T.account})-[:${E.ownsRepo}]->(child:${T.repository})`},
-            {name: "repository-has-lane", gryphon: `(parent:${T.repository})-[:${SYN.hasLane}]->(child:${T.lane})`},
-            {name: "lane-holds-workflow", gryphon: `(parent:${T.lane})-[:${SYN.laneHolds}]->(child:${T.workflow})`},
+            {name: "repository-has-block", gryphon: `(parent:${T.repository})-[:${SYN.hasBlock}]->(child:${T.pipelines})`},
+            {name: "block-has-toprow", gryphon: `(parent:${T.pipelines})-[:${SYN.hasBlock}]->(child:${T.toprow})`},
+            {name: "block-has-lane", gryphon: `(parent)-[:${SYN.hasLane}]->(child)`},
+            {name: "lane-holds-workflow", gryphon: `(parent)-[:${SYN.laneHolds}]->(child:${T.workflow})`},
             {name: "repository-has-ref", gryphon: `(parent:${T.repository})-[:${SYN.hasRef}]->(child:${T.ref})`},
             {name: "repository-has-environment", gryphon: `(parent:${T.repository})-[:${E.hasEnvironment}]->(child:${T.environment})`},
             {name: "ruleset-protects-repository", gryphon: `(parent:${T.repository})<-[:${E.protects}]-(child:${T.ruleset})`},
@@ -168,7 +191,9 @@ export async function execute(context) {
             [T.platform]: {top: 40 + labelInset, right: 40, bottom: 40, left: 40},
             [T.account]: {top: 24 + labelInset, right: 34, bottom: 34, left: 34},
             [T.repository]: {top: 18 + labelInset, right: 28, bottom: 28, left: 28},
-            [T.lane]: {top: 10 + labelInset, right: 16, bottom: 12, left: 16},
+            [T.pipelines]: {top: 6, right: 6, bottom: 6, left: 6},
+            [T.toprow]: {top: 6, right: 6, bottom: 6, left: 6},
+            ...Object.fromEntries(LANE_TYPES.map((t) => [t, {top: 10 + labelInset, right: 16, bottom: 12, left: 16}])),
             [T.workflow]: {top: 6 + labelInset, right: 14, bottom: 14, left: 14},
         },
         innerLayout: {
@@ -182,18 +207,83 @@ export async function execute(context) {
         },
         innerLayouts: {
             [T.account]: {name: "flow", aspect: 2.0, gap: 24, sort: "area-desc"},
-            // The pipelines stage now holds the lanes, stacked top to bottom in cardinal order.
+            // The repository: sources | the pipelines block | outputs, the base's own columns.
             [T.repository]: ranked("order", {columnLayout: "stack"}),
-            // Inside a lane: one wide row of workflow boxes, first-fired toward the sources side.
-            [T.lane]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
+            // The block: the top row, then the scheduled line, then fleet, then the baseline.
+            [T.pipelines]: {
+                name: "tiered-rows", rowGap: 28, itemGap: 24,
+                tiers: [
+                    {name: "top", entityTypes: [T.toprow]},
+                    {name: "scheduled", entityTypes: [LANE_TYPE.scheduled]},
+                    {name: "fleet", entityTypes: [LANE_TYPE.fleet]},
+                    {name: "baseline", entityTypes: [LANE_TYPE.baseline]},
+                ],
+            },
+            // The top row: publish (outputs stage) to the left of the gate (pipelines stage).
+            [T.toprow]: ranked("order", {columnLayout: "stack"}),
+            // Inside a lane: workflow boxes in a row, first-fired toward the sources side.
+            [LANE_TYPE.gate]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
+            [LANE_TYPE.publish]: ranked("order", {columnLayout: "flow", flowAspect: 2.2}),
+            [LANE_TYPE.fleet]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
+            [LANE_TYPE.baseline]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
+            // The scheduled line: one row, by time of day.
+            [LANE_TYPE.scheduled]: ranked("order", {columnLayout: "flow", flowAspect: 60}),
             [T.workflow]: ranked("label"),
         },
     });
     warnings.push(...(result.warnings || []));
+    for (const plan of plans) _mirrorPublishJobs(cy, plan);
     placeParentLabels(cy, {anchor: "upper-left", inset: 8, parentFontSize: chrome.parentFontSize, parentFontWeight: chrome.parentFontWeight});
     settleStacks(cy);
     _style(cy);
     return {warnings};
+}
+
+// ---------------------------------------------------------------------------
+// The scheduled line: time of day from the cron, on the label and in the order
+// ---------------------------------------------------------------------------
+
+const CRON_RE = /cron:\s*["']?\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/;
+
+function _stampSchedule(plan, warn) {
+    for (const item of plan.values()) {
+        const base = item.node.data("_label_base") || item.node.data("label") || "";
+        item.node.data("_label_base", base);
+        if (item.lane !== "scheduled") continue;
+        const raw = String((item.conf && item.conf.raw_yaml) || "");
+        const m = raw.match(CRON_RE);
+        if (!m) {
+            warn("tap_lanes_no_cron", `${item.name}: scheduled lane but no cron found in the workflow file`);
+            item.node.data("_order", 24 * 60);
+            continue;
+        }
+        const minute = parseInt(m[1], 10);
+        const hour = parseInt(m[2], 10);
+        if (Number.isNaN(minute) || Number.isNaN(hour)) {
+            warn("tap_lanes_cron_unparsed", `${item.name}: cron "${m[0]}" is not a fixed time of day`);
+            item.node.data("_order", 24 * 60);
+            continue;
+        }
+        const hh = String(hour).padStart(2, "0");
+        const mm = String(minute).padStart(2, "0");
+        item.node.data("_order", hour * 60 + minute);
+        item.node.data("label", `${base} — ${hh}:${mm}`);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// The publish lane reads left to right inside its workflows (the mock, 2026-09-09):
+// mirror each workflow's jobs about the box centre after the nesting pass.
+// ---------------------------------------------------------------------------
+
+function _mirrorPublishJobs(cy, plan) {
+    for (const item of plan.values()) {
+        if (item.lane !== "publish") continue;
+        const cx = item.node.position("x");
+        cy.nodes(`[_viewport_parent = "${item.id}"]`).forEach((job) => {
+            job.position({x: 2 * cx - job.position("x"), y: job.position("y")});
+        });
+    }
 }
 
 function _readConfig(projection) {
@@ -269,7 +359,7 @@ function _classify(workflows, facts, warn) {
                 ? runsAfterRaw.workflows.map(String)
                 : [];
         const item = {
-            node: wf, id: wf.id(), path, name: f.name || wf.data("label") || _basename(path),
+            node: wf, id: wf.id(), path, name: f.name || wf.data("label") || _basename(path), conf,
             triggers, primary: PRIMARY.find((t) => triggers.includes(t)) || null,
             dynamic: !!wf.data("_dynamic") || String(path).startsWith("dynamic/"),
             uses, runsAfterNames: runsAfter, callsLocal: [], calledBy: [], runsAfter: [], lane: null,
@@ -316,7 +406,9 @@ function _classify(workflows, facts, warn) {
     for (const item of items.values()) {
         if (item.lane) continue;
         const callee = item.callsLocal.find((c) => c.lane);
-        item.lane = callee ? (callee.lane === "baseline" ? "fleet" : callee.lane) : "scheduled";
+        // A hand-fired workflow that calls nothing local is fleet work (all-plugins runs the
+        // plugin repositories' CI by hand); it has no clock, so it is not scheduled.
+        item.lane = callee ? (callee.lane === "baseline" ? "fleet" : callee.lane) : "fleet";
         if (!item.primary) warn("tap_lanes_no_trigger", `${item.name}: no trigger observed; placed in the ${item.lane} lane`);
     }
     // Settle baseline once every caller has a lane.
@@ -334,16 +426,30 @@ function _classify(workflows, facts, warn) {
 
 function _addLanes(cy, repo, plan) {
     const present = new Set([...plan.values()].map((i) => i.lane));
+    const blockId = `${T.pipelines}:${repo.id()}`;
+    const rowId = `${T.toprow}:${repo.id()}`;
+    // `shape` is set because the base stylesheet maps it from data on every node.
+    cy.add({group: "nodes", data: {id: blockId, entity_type: T.pipelines, label: "", shape: "round-rectangle", _stage: STAGE.pipelines, _order: 0}, classes: "tap-frame"});
+    cy.add({group: "edges", data: {id: `${SYN.hasBlock}:${blockId}`, source: repo.id(), target: blockId, edge_type: SYN.hasBlock}, classes: "tap-lane-containment"});
+    let rowAdded = false;
     for (const [key, lane] of Object.entries(LANES)) {
         if (!present.has(key)) continue;
         const id = `${T.lane}:${repo.id()}:${key}`;
         cy.add({
             group: "nodes",
-            // `shape` is set because the base stylesheet maps it from data on every node.
-            data: {id, entity_type: T.lane, label: lane.label, shape: "round-rectangle", _stage: STAGE.pipelines, _order: lane.order, _lane: key},
+            data: {id, entity_type: LANE_TYPE[key], label: lane.label, shape: "round-rectangle", _stage: lane.stage, _order: lane.stage, _lane: key},
             classes: `tap-lane tap-lane-${key}`,
         });
-        cy.add({group: "edges", data: {id: `${SYN.hasLane}:${id}`, source: repo.id(), target: id, edge_type: SYN.hasLane}, classes: "tap-lane-containment"});
+        let parentId = blockId;
+        if (lane.row === 0) {
+            if (!rowAdded) {
+                cy.add({group: "nodes", data: {id: rowId, entity_type: T.toprow, label: "", shape: "round-rectangle", _stage: STAGE.pipelines, _order: 0}, classes: "tap-frame"});
+                cy.add({group: "edges", data: {id: `${SYN.hasBlock}:${rowId}`, source: blockId, target: rowId, edge_type: SYN.hasBlock}, classes: "tap-lane-containment"});
+                rowAdded = true;
+            }
+            parentId = rowId;
+        }
+        cy.add({group: "edges", data: {id: `${SYN.hasLane}:${id}`, source: parentId, target: id, edge_type: SYN.hasLane}, classes: "tap-lane-containment"});
         for (const item of plan.values()) {
             if (item.lane !== key) continue;
             cy.add({group: "edges", data: {id: `${SYN.laneHolds}:${item.id}`, source: id, target: item.id, edge_type: SYN.laneHolds}, classes: "tap-lane-containment"});
@@ -368,7 +474,9 @@ function _drawRelationships(cy, plan) {
 
 function _style(cy) {
     cy.style()
-        .selector(`node[entity_type = "${T.lane}"]`)
+        .selector(".tap-frame")
+        .style({"background-opacity": 0, "border-width": 0, "label": "", "events": "no"})
+        .selector(".tap-lane")
         .style({
             "shape": "round-rectangle", "background-color": "#0e6b64", "background-opacity": 0.05,
             "border-width": 1, "border-style": "dashed", "border-color": "#0e6b64",
@@ -390,5 +498,7 @@ function _style(cy) {
 function _clear(cy) {
     cy.remove(cy.edges(".tap-lane-edge"));
     cy.remove(cy.edges(".tap-lane-containment"));
-    cy.remove(cy.nodes(`[entity_type = "${T.lane}"]`));
+    cy.remove(cy.nodes(".tap-lane"));
+    cy.remove(cy.nodes(".tap-frame"));
+    cy.nodes("[_label_base]").forEach((n) => n.data("label", n.data("_label_base")));
 }
