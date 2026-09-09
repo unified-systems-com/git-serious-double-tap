@@ -1,0 +1,302 @@
+{
+  "metadata": {
+    "grift_version": "0"
+  },
+  "_reserved": {},
+  "batches": [
+    {
+      "batch_entity": {
+        "entity_id": "01a08804-4b2c-766d-9dec-9cb13af0e8a8",
+        "entity_type": "batch",
+        "name": "git-serious double-tap: tap machinery projection v0.1.0",
+        "dimensions": {}
+      },
+      "batch_node": {
+        "source": "tap_plugin.git_serious_double_tap.grift.tap_machinery",
+        "name": "git-serious double-tap: tap machinery projection v0.1.0",
+        "description": "The tap-specific machinery picture (req-git-serious-double-tap-tap-projection): a double-tap-owned projection whose one elevation runs TWO layouts on the same canvas — git_serious's machinery layout (github_core's machinery.js, referenced by entity id, never copied) and then the tap lanes layout (this plugin's tap-machinery.js), which regroups the repository's workflows into lanes by what starts them (PR gate · publish · scheduled · fleet · reusable baseline), places them by the cardinal map ruled 2026-09-09 (gate centre, publish left, scheduled below, fleet and baseline at the bottom, sources right), and draws the workflow-call and workflow_run edges across lanes. One graph panel owns the projection and shares the generic repository page's three scene searches by id; the tap page mounts it with the fixed input repo=unified-systems-com/tap. Out-of-file endpoints: git_serious's layout and searches, so git_serious seeds first."
+      },
+      "nodes": [
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cad99504f85",
+            "entity_type": "projection",
+            "name": "double-tap tap machinery projection",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap tap machinery projection",
+            "description": "tap's machinery: github_core's machinery layout, then the tap lanes layout on top. Same declarative surface as git-serious's landing projection (machinery config, icon-badge node style, the two search-driven badge sets) with the elevation swapped for this plugin's.",
+            "definition": {
+              "node_style": {
+                "mode": "icon-badge"
+              },
+              "elevations": [
+                "01a08804-4b2c-766d-9dec-9caec624cdb0"
+              ],
+              "default_elevation_id": "01a08804-4b2c-766d-9dec-9caec624cdb0",
+              "min_zoom": "fit",
+              "status_badges": {
+                "refresh_seconds": 120,
+                "badge_sets": [
+                  {
+                    "name": "failed-runs",
+                    "label": "Failed runs in the collected window",
+                    "color": "#CF222E",
+                    "text_color": "#FFFFFF",
+                    "population": {
+                      "type": "search",
+                      "search_id": "01a0630b-4f01-76d1-b7a0-e4dcc2849331"
+                    },
+                    "info_window": {
+                      "search_id": "01a0630b-4f01-76d1-b7a0-e4dd2b8a79ec"
+                    }
+                  },
+                  {
+                    "name": "no-run-observed",
+                    "label": "No run observed for this workflow",
+                    "color": "#6E7781",
+                    "text_color": "#FFFFFF",
+                    "population": {
+                      "type": "search",
+                      "search_id": "01a0630b-4f01-76d1-b7a0-e4de19dd2e2a"
+                    },
+                    "info_window": {
+                      "search_id": "01a0630b-4f01-76d1-b7a0-e4dfc172d290"
+                    }
+                  }
+                ]
+              },
+              "machinery": {
+                "flow": "rtl",
+                "stack_refs_over": 3
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9caec624cdb0",
+            "entity_type": "elevation",
+            "name": "double-tap tap machinery elevation",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap tap machinery elevation",
+            "description": "tap's machinery at one elevation: github_core's machinery layout first, then the tap lanes layout over it.",
+            "definition": {
+              "zoom": 1.0,
+              "description": "tap's machinery at one elevation: github_core's machinery layout first, then the tap lanes layout over it.",
+              "layouts": [
+                "01a03f78-11fa-7029-823d-7946a31a3ee2",
+                "01a08804-4b2c-766d-9dec-9caf6fb0a0ee"
+              ],
+              "double_tap_targets": []
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9caf6fb0a0ee",
+            "entity_type": "layout",
+            "name": "double-tap tap lanes layout",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap tap lanes layout",
+            "description": "Runs after machinery.js on the same cy: classifies each workflow by its primary trigger (pull_request/merge_group > push > workflow_run > schedule > workflow_call > dispatch), promotes a workflow_call workflow to the reusable baseline when callers span more than one lane, groups the workflow boxes under synthetic lane parents inside the repository box, lays the lanes out by the cardinal map, re-seats sources and outputs around the new block, and adds synthetic call/workflow_run edges. Reads nothing that names tap; the lanes are derived from collected workflow configuration.",
+            "definition": {
+              "js_file": "tap_plugin/git_serious_double_tap/static/git_serious_double_tap/js/projections/tap-machinery.js",
+              "arrangements": []
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb0630013cf",
+            "entity_type": "panel",
+            "name": "Machinery · tap lanes",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "Machinery · tap lanes",
+            "description": "unified-systems-com/tap's CI system as lanes: the PR gate front and centre, the publish chain to its left ending in the outputs, scheduled lanes below, the fleet lanes and the reusable baseline at the bottom, sources on the right. github_core's machinery projection drawn first, the tap lanes layout over it (the double-tap's own projection). Shares the generic repository page's scene searches; the page pins repo=unified-systems-com/tap.",
+            "slug": "double-tap-tap-machinery",
+            "view": "tap_viz/panels/graph_panel.html",
+            "config": {
+              "height": "100%",
+              "hide_header": true,
+              "nav_rules": [
+                {
+                  "entity_type": "github_core__github_platform",
+                  "url_field": "html_url",
+                  "external": true
+                },
+                {
+                  "entity_type": "github_core__github_account",
+                  "url_field": "html_url",
+                  "external": true
+                },
+                {
+                  "entity_type": "github_core__github_repository",
+                  "url_field": "html_url",
+                  "external": true
+                },
+                {
+                  "entity_type": "github_core__github_workflow",
+                  "url_field": "html_url",
+                  "external": true
+                },
+                {
+                  "entity_type": "github_core__github_app",
+                  "url_field": "html_url",
+                  "external": true
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb2e5a01816",
+            "entity_type": "edge",
+            "name": "tap projection USES_ELEVATION tap elevation",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a08804-4b2c-766d-9dec-9cad99504f85",
+            "to_entity_id": "01a08804-4b2c-766d-9dec-9caec624cdb0",
+            "edge_type": "USES_ELEVATION",
+            "properties": {
+              "hotlink": {
+                "model": "projection",
+                "spec": "projection-elevations",
+                "value": "01a08804-4b2c-766d-9dec-9caec624cdb0"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb3507d3778",
+            "entity_type": "edge",
+            "name": "tap projection USES_DEFAULT_ELEVATION tap elevation",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a08804-4b2c-766d-9dec-9cad99504f85",
+            "to_entity_id": "01a08804-4b2c-766d-9dec-9caec624cdb0",
+            "edge_type": "USES_DEFAULT_ELEVATION",
+            "properties": {
+              "hotlink": {
+                "model": "projection",
+                "spec": "projection-default-elevation",
+                "value": "01a08804-4b2c-766d-9dec-9caec624cdb0"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb433933c52",
+            "entity_type": "edge",
+            "name": "tap elevation USES_LAYOUT git-serious machinery layout (github_core machinery.js, by id)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a08804-4b2c-766d-9dec-9caec624cdb0",
+            "to_entity_id": "01a03f78-11fa-7029-823d-7946a31a3ee2",
+            "edge_type": "USES_LAYOUT",
+            "properties": {
+              "hotlink": {
+                "model": "elevation",
+                "spec": "elevation-layouts",
+                "value": "01a03f78-11fa-7029-823d-7946a31a3ee2"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb504b5d6da",
+            "entity_type": "edge",
+            "name": "tap elevation USES_LAYOUT tap lanes layout",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a08804-4b2c-766d-9dec-9caec624cdb0",
+            "to_entity_id": "01a08804-4b2c-766d-9dec-9caf6fb0a0ee",
+            "edge_type": "USES_LAYOUT",
+            "properties": {
+              "hotlink": {
+                "model": "elevation",
+                "spec": "elevation-layouts",
+                "value": "01a08804-4b2c-766d-9dec-9caf6fb0a0ee"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb6528e4c0e",
+            "entity_type": "edge",
+            "name": "tap machinery panel USES_PROJECTION tap projection",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a08804-4b2c-766d-9dec-9cb0630013cf",
+            "to_entity_id": "01a08804-4b2c-766d-9dec-9cad99504f85",
+            "edge_type": "USES_PROJECTION",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb7ffbba5e5",
+            "entity_type": "edge",
+            "name": "tap machinery panel USES_SEARCH generic scene nodes",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a08804-4b2c-766d-9dec-9cb0630013cf",
+            "to_entity_id": "01a08766-f51c-72d0-a9f1-ae961f1897cb",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb892bfc899",
+            "entity_type": "edge",
+            "name": "tap machinery panel USES_SEARCH generic scene refs",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a08804-4b2c-766d-9dec-9cb0630013cf",
+            "to_entity_id": "01a08766-f51c-72d0-a9f1-ae9722c992d9",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08804-4b2c-766d-9dec-9cb992ccb205",
+            "entity_type": "edge",
+            "name": "tap machinery panel USES_SEARCH generic all edges",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a08804-4b2c-766d-9dec-9cb0630013cf",
+            "to_entity_id": "01a08766-f51c-72d0-a9f1-ae98a697b35c",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        }
+      ]
+    }
+  ]
+}

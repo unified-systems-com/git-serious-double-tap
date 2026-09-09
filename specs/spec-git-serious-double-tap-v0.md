@@ -48,7 +48,8 @@ loan, not a residence; its spec section names the graduation issue.
 | --- | --- | :---: | --- |
 | req-git-serious-double-tap-scope | [Instance-Only Scope](#instance-only-scope) | Implemented | Manifest + GRIFT only; install dep on git_serious; no models, edges, collectors or panel types |
 | req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` is the demo strip alone; `/double-tap/status-wall` mounts git-serious's status wall and not-observed panels by edge |
-| req-git-serious-double-tap-page-tap | [The tap Page](#the-tap-page) | Implemented | `/double-tap/tap`: one page node mounting git-serious's shared repository panels by id, each edge pinning `repo=unified-systems-com/tap` as a fixed input (tap#359) — the instance's one scoped page, owning no panel of its own |
+| req-git-serious-double-tap-page-tap | [The tap Page](#the-tap-page) | Implemented | `/double-tap/tap`: one page node mounting git-serious's shared repository panels by id, each edge pinning `repo=unified-systems-com/tap` as a fixed input (tap#359) — the instance's one scoped page, owning one panel of its own, the machinery panel (req-git-serious-double-tap-tap-projection) |
+| req-git-serious-double-tap-tap-projection | [The tap Projection](#the-tap-projection) | Implemented | A double-tap-owned projection whose one elevation runs github_core's machinery layout and then the tap lanes layout on the same canvas; the tap page's machinery panel owns it |
 | req-git-serious-double-tap-page-strip | [Demo Strip](#demo-strip) | Implemented | One card per repository that moved in the last 24 hours: its open PRs with the check results of each PR's current head; collection freshness said out loud; navigation to the four git-serious views |
 | req-git-serious-double-tap-nongoals | [v0 Non-Goals](#v0-non-goals) | Implemented | What this plugin refuses to grow into |
 
@@ -162,8 +163,73 @@ carried five panels, six searches and thirteen edges as copies; v0.2.0 retired t
 | --- | --- | :---: | --- | --- |
 | req-git-serious-double-tap-page-tap-1 | Same Structure | Implemented | `GET /double-tap/tap` renders the five slots in the generic page's order and every panel returns rows for unified-systems-com/tap; each slot's fragment URL carries the git-serious panel's entity id (the same id the generic page mounts) with `repo=unified-systems-com%2Ftap`. | Observed 2026-09-09 on 8010 with tap PR# 362 (tap#359) merged into the session core: identity 1 row, pulls, wall 274 ids, not-observed 14 — every slot's fragment URL ends `?repo=unified-systems-com%2Ftap`; identity/pulls/wall/not-observed carry git-serious's panel ids, the machinery slot the double-tap machinery panel (-3, in progress). |
 | req-git-serious-double-tap-page-tap-2 | Pinned Scope | Implemented | The bundle declares no search and no panel; every `USES_PANEL` edge carries `inputs.repo = "unified-systems-com/tap"`; `?repo=other` on the page changes nothing (the fixed input wins). | The one literal per edge is the instance's privilege. Observed 2026-09-09: the bundle has 1 node, 5 edges, no `$`; the fixed input wins over the URL (tap#359's ACIDs). |
-| req-git-serious-double-tap-page-tap-3 | Divergence Seam Is The Projection | Proposed | A tap-specific machinery view arrives as a double-tap-owned graph panel with its own `USES_PROJECTION` over git_serious's scene searches, swapped into the `machinery` slot; nothing else is copied. | Not built; the slot mounts git-serious's machinery panel today. |
+| req-git-serious-double-tap-page-tap-3 | Divergence Seam Is The Projection | Implemented | A tap-specific machinery view arrives as a double-tap-owned graph panel with its own `USES_PROJECTION` over git_serious's scene searches, swapped into the `machinery` slot; nothing else is copied. | Not built; the slot mounts git-serious's machinery panel today. Implemented 2026-09-09 by PR# 13: the machinery slot is `double-tap-tap-machinery`, the one panel the page owns (req-git-serious-double-tap-tap-projection). |
 | req-git-serious-double-tap-page-tap-4 | Card Link | Implemented | The tap card's repository link is `/double-tap/tap`; any other repository's is the generic page. | `test_card_links_to_the_git_serious_repository_page` |
+
+### The tap Projection
+----
+RID: `req-git-serious-double-tap-tap-projection`
+
+Status: `Implemented`
+
+Issue: unified-systems-com/git-serious-double-tap#12 (George, 2026-09-09: "let's build the first cut of the
+tap projection"). This is the divergence seam the tap page promised: **machinery edits** live in
+github_core (machinery.js and its config keys, the nesting rules it feeds); **tap-specific edits**
+live here. Nothing of machinery.js is copied.
+
+**Composition** — the double-tap seeds a projection, an elevation and a layout of its own. The
+elevation's ordered layouts are `[git-serious-landing-layout, double-tap tap lanes layout]`: the
+first is git_serious's existing layout entity (github_core's machinery.js) referenced by entity id
+across the bundle boundary, the second is this plugin's `tap-machinery.js`. Per
+req-viz-layout-execution the two run serially on the same canvas, so the tap layout sees every
+position, `_stage` / `_order` datum and class the base left behind, and builds on them. The
+projection keeps the base's declarative surface (the `machinery` config block, icon-badge node
+style, the two search-driven badge sets). One graph panel (`double-tap-tap-machinery`) owns the
+projection and shares the generic repository page's three scene searches by id; the tap page's
+`USES_PANEL` edge mounts it with the fixed input `repo=unified-systems-com/tap`.
+
+**What the tap layout adds** (first cut, the cardinal map ruled 2026-09-09):
+
+1. *Lanes by what starts it.* Each workflow's primary trigger — pull_request / merge_group >
+   push > workflow_run > schedule > workflow_call > workflow_dispatch — puts it in one of five
+   lanes: **gate**, **publish**, **scheduled**, **fleet**, **baseline**. A workflow_call workflow
+   whose callers span more than one lane is the reusable baseline; one called from a single lane
+   or from other repositories is fleet. A workflow_run workflow inherits its upstream's lane. A
+   dispatch-only workflow takes the lane of the first local workflow it calls. GitHub's dynamic
+   workflows (CodeQL, the Copilot reviewers) sit in the gate lane.
+2. *The cardinal map.* Inside the repository box: the gate lane centre-right, publish to its left
+   (artifacts on the left), scheduled below, fleet then the baseline at the bottom. Sources stay on
+   the right and outputs on the left; the layout re-seats them around the new block rather than
+   re-laying them out. Lanes are synthetic compound parents so each band carries its label; the
+   gate lane is drawn heavier than the rest.
+3. *Cross-lane relationships.* `uses:` of a local reusable workflow and `workflow_run` chaining
+   become synthetic dashed / dotted edges between workflow boxes.
+
+Nothing in the module names tap: the lanes are derived from the collected workflow
+configuration (`triggers`, `jobs[].uses`, `workflow_run`), so the same module reads any
+repository and only the page pins which one. Warnings, never silence, for an unresolved upstream,
+a workflow with no observed trigger, or a scene with no repository.
+
+#### Implementation
+
+`tap_plugin/git_serious_double_tap/grift/tap-machinery.grift.json` — projection
+`01a08804-4b2c-766d-9dec-9cad99504f85`, elevation `…9caec624cdb0`, layout `…9caf6fb0a0ee`, panel
+`…9cb0630013cf` (slug `double-tap-tap-machinery`), edges `USES_ELEVATION`, `USES_DEFAULT_ELEVATION`,
+two `USES_LAYOUT` (the first onto git_serious's `01a03f78-11fa-7029-823d-7946a31a3ee2`),
+`USES_PROJECTION`, three `USES_SEARCH` onto the generic page's scene searches. Registered in the
+manifest as `tap_machinery`, before `tap_repository`, whose machinery `USES_PANEL` edge now targets
+this panel. Module:
+`tap_plugin/git_serious_double_tap/static/git_serious_double_tap/js/projections/tap-machinery.js`.
+
+#### Acceptance Criteria
+
+| ACID | Title | Status | Description | Notes |
+| --- | --- | :---: | --- | --- |
+| req-git-serious-double-tap-tap-projection-1 | Two Layouts, One Canvas | Implemented | The tap elevation lists git_serious's machinery layout first and the tap lanes layout second; the panel's projection context on 8010 names both `js_file`s in that order. | Observed 2026-09-09. |
+| req-git-serious-double-tap-tap-projection-2 | Nothing Copied | Implemented | The bundle contains no layout whose `js_file` is machinery.js; the base layout is referenced by entity id. | Reviewed on every change. |
+| req-git-serious-double-tap-tap-projection-3 | Lanes From Data | Implemented | The module classifies from `configuration.triggers`, `jobs[].uses` and `workflow_run` only; no repository, workflow or job name appears in it. | Reviewed; a JS test harness is a follow-on (no node on the host). |
+| req-git-serious-double-tap-tap-projection-4 | Page Mounts It | Implemented | `/double-tap/tap`'s machinery slot is `double-tap-tap-machinery`; the fragment with the pinned repo returns the tap projection and the scene. | Observed 2026-09-09; pinned inputs themselves are tap#359. |
+| req-git-serious-double-tap-tap-projection-5 | Seen By A Human | In Development | The five lanes render in the cardinal order on /double-tap/tap with the call edges visible. | George to confirm on the 8010 stack. |
 
 ### Demo Strip
 ----
