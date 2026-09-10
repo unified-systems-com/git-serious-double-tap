@@ -136,16 +136,14 @@
   },
   "fips_waivers": [
     {
-      "plugin": "zizmor",
       "artifact": "*/bin/zizmor",
       "provider": "boringssl",
-      "reason": "zizmor's wheel is one static Rust binary that links boringssl (via ring) and aws-lc-rs for an HTTPS client used only by its ONLINE audits. This plugin invokes it with --offline and hands it an environment carrying no GitHub token, so the providers are present in the artifact but never execute a security operation. No TAP data is encrypted, signed or hashed by them. Re-decide when req-zizmor-online-audits ships: that turns the providers from present-but-unreached into actually executing."
+      "reason": "zizmor's wheel is one static Rust binary that links boringssl (via ring) and aws-lc-rs for an HTTPS client used only by its ONLINE audits. This plugin invokes it with --offline and hands it an environment carrying no GitHub token, so the providers are present in the artifact but never execute a security operation. No TAP data is encrypted, signed or hashed by them. Re-decide when req-zizmor-online-audits ships: that turns the providers from present-but-unreached into actually executing. (Scoped by `artifact` rather than `plugin`: tap.crypto_bom.load_waivers resolves `entry.get('artifact') or entry.get('plugin')`, so supplying both would silently drop the plugin key \u2014 a field that reads as if it narrows the waiver and does not.)"
     },
     {
-      "plugin": "zizmor",
       "artifact": "*/bin/zizmor",
       "provider": "rust-aws-lc-rs",
-      "reason": "The second non-validated provider in the same static binary, waived on the same basis and with the same re-decision trigger. AWS-LC has a FIPS 140-3 validated module, but it ships as a separate crate (aws-lc-fips-sys) that zizmor's build does not select, so the binary is not the validated module even though the library it embeds is validatable."
+      "reason": "The second non-validated provider in the same static binary, waived on the same basis and with the same re-decision trigger. AWS-LC has a FIPS 140-3 validated module, but it ships as a separate crate (aws-lc-fips-sys) that zizmor's build does not select, so the binary is not the validated module even though the library it embeds is validatable. (Scoped by `artifact` rather than `plugin`: tap.crypto_bom.load_waivers resolves `entry.get('artifact') or entry.get('plugin')`, so supplying both would silently drop the plugin key \u2014 a field that reads as if it narrows the waiver and does not.)"
     }
   ]
 }
