@@ -1,10 +1,9 @@
 {% comment %}One board card — included per row by demo_strip.html (req-git-serious-double-tap-page-strip).{% endcomment %}
-        <article class="dts-card dts-card--{{ card.criticality }} dts-card--state-{{ card.state }}{% if not card.rows %} dts-card--empty{% endif %}{% if duplicate %} dts-card--duplicate{% endif %}" role="listitem" data-repo="{{ card.full_name }}" aria-label="{{ card.full_name }}: {{ card.verb }} {{ card.headline }}">
+        <article class="dts-card dts-card--{{ card.criticality }} dts-card--state-{{ card.state }}{% if not card.rows %} dts-card--empty{% endif %}" role="listitem" data-repo="{{ card.full_name }}" aria-label="{{ card.full_name }}: {{ card.verb }} {{ card.headline }}">
           <header class="dts-card-head">
             <a class="dts-repo" href="{{ card.page_url }}" title="{{ card.full_name }} — open the repository view">{{ card.name }}</a>
             <span class="dts-crit dts-crit--{{ card.criticality }}" {% if card.criticality_note %}title="{{ card.criticality_note }}"{% endif %}>{{ card.criticality|capfirst }}</span>
           </header>
-          {% if duplicate %}<p class="dts-dup" title="This plugin is in more than one product's record; hover to light its twins">also under {{ also_under|join:", " }}</p>{% endif %}
           <p class="dts-nudge dts-nudge--{{ card.state }}"{% if card.state == "green" %} title="Checks pass on the current head. Approval, conflicts and merge readiness are not established by checks — that decision is yours."{% endif %}>
             {% if card.verb %}<b class="dts-verb">{{ card.verb }}</b>{% endif %}{% if card.lead %} {{ card.lead }}{% endif %}{% for number, url in card.targets %}{% if not forloop.first %},{% endif %} <a class="dts-target" href="{{ url }}" target="_blank" rel="noopener">PR #{{ number }}</a>{% endfor %}{% if card.tail %} {{ card.tail }}{% endif %}
           </p>

@@ -33,35 +33,33 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
   {% else %}
     <div class="dts-board">
       {% if board.platform %}
-        <section class="dts-row dts-row--platform" aria-label="Platform">
-          <div class="dts-platform">{% with card=board.platform duplicate=False %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}</div>
+        <section class="dts-band dts-band--platform" aria-label="Platform">
+          <div class="dts-platform">{% with card=board.platform %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}</div>
         </section>
       {% endif %}
-      <section class="dts-row dts-row--products" aria-label="Products">
-        <h3 class="dts-row-title">Products</h3>
-        <div class="dts-columns">
+      <section class="dts-band" aria-label="Products">
+        <h3 class="dts-band-title">Products</h3>
+        <div class="dts-products">
           {% for col in board.products %}
-            <div class="dts-column" data-product="{{ col.full_name }}">
-              <h4 class="dts-column-title">{{ col.label }}</h4>
-              {% if col.card %}{% with card=col.card duplicate=False %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% else %}<p class="dts-column-quiet">nothing open on {{ col.label }} itself</p>{% endif %}
-              {% if col.members %}<div class="dts-column-plugins">{% for m in col.members %}{% with card=m.card duplicate=m.duplicate also_under=m.also_under %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% endfor %}</div>{% endif %}
+            <div class="dts-product" data-product="{{ col.full_name }}">
+              {% if col.card %}{% with card=col.card %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% else %}<p class="dts-column-quiet">{{ col.label }}: nothing open</p>{% endif %}
             </div>
           {% endfor %}
         </div>
       </section>
       {% if board.plugins %}
-        <section class="dts-row" aria-label="Plugins in no product record">
-          <h3 class="dts-row-title">Plugins in no product record</h3>
-          <div class="dts-strip" role="list">{% for card in board.plugins %}{% with duplicate=False %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% endfor %}</div>
+        <section class="dts-band" aria-label="Plugins">
+          <h3 class="dts-band-title">Plugins</h3>
+          <div class="dts-strip dts-strip--plugins" role="list">{% for card in board.plugins %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endfor %}</div>
         </section>
       {% endif %}
       {% if board.support %}
-        <section class="dts-row" aria-label="Support">
-          <h3 class="dts-row-title">Support</h3>
-          <div class="dts-strip" role="list">{% for card in board.support %}{% with duplicate=False %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% endfor %}</div>
+        <section class="dts-band" aria-label="Support">
+          <h3 class="dts-band-title">Support</h3>
+          <div class="dts-strip dts-strip--plugins" role="list">{% for card in board.support %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endfor %}</div>
         </section>
       {% endif %}
-      <p class="dts-note">Note to self: the product → plugin columns are hardcoded from each product's boot record (2026-09-09), and samsite is a product here although the org property says plugin. Build it properly: <a href="{{ board_issue_url }}" target="_blank" rel="noopener">Issue# {{ board_issue }} - git-serious-double-tap</a>.</p>
+      <p class="dts-note">Note to self: the products row is a declared list (git-serious, samsite) — the org's role property says samsite is a plugin and git-serious-double-tap a product. Derive the row properly: <a href="{{ board_issue_url }}" target="_blank" rel="noopener">Issue# {{ board_issue }} - git-serious-double-tap</a>.</p>
     </div>
   {% endif %}
 
@@ -96,18 +94,3 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
 })();
 </script>
 {% endif %}
-<script>
-(function () {
-  // Duplicates: a plugin in more than one product's record is a card in each column; hovering one
-  // lights every card of the same repository (req-git-serious-double-tap-page-strip, the board).
-  // The script sits after its section in the fragment, so look back to the nearest section.dts.
-  var me = document.currentScript;
-  var root = me && (me.closest("section.dts") || (me.previousElementSibling && me.previousElementSibling.closest && me.previousElementSibling.closest("section.dts")) || (me.parentElement && me.parentElement.querySelector("section.dts")));
-  if (!root) return;
-  root.querySelectorAll(".dts-card--duplicate[data-repo]").forEach(function (card) {
-    var twins = function () { return root.querySelectorAll('.dts-card[data-repo="' + card.getAttribute("data-repo") + '"]'); };
-    card.addEventListener("mouseenter", function () { twins().forEach(function (t) { t.classList.add("dts-card--lit"); }); });
-    card.addEventListener("mouseleave", function () { twins().forEach(function (t) { t.classList.remove("dts-card--lit"); }); });
-  });
-})();
-</script>

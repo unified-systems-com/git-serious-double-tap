@@ -444,7 +444,7 @@ def test_board_summary_counts_in_board_order_without_zeros() -> None:
 # --- the board --------------------------------------------------------------
 
 
-def test_board_places_platform_products_duplicates_and_support() -> None:
+def test_board_places_platform_products_plugins_and_support() -> None:
     from tap_plugin.git_serious_double_tap.panels.demo_strip import arrange_board
 
     gs, sam = (
@@ -453,40 +453,33 @@ def test_board_places_platform_products_duplicates_and_support() -> None:
     )
     ghc = "unified-systems-com/tap-plugin-github-core"
     idc = "unified-systems-com/tap-plugin-identity-core"
-    zz = "unified-systems-com/zizmor-tap"
+    dt = "unified-systems-com/git-serious-double-tap"
     dev = "unified-systems-com/tap-dev-hooks"
     repos = [
         _repo("unified-systems-com/tap", criticality="critical", role="platform"),
         _repo(gs, role="product"),
+        _repo(
+            dt, role="product"
+        ),  # role says product; the declared products row does not name it
         _repo(ghc, criticality="high"),
         _repo(idc, criticality="low"),
-        _repo(zz, criticality="low"),
         _repo(dev, criticality="critical", role="support"),
     ]
     prs = [
         _pr("unified-systems-com/tap", 1, checks=[_check("a", run_id=1)]),
         _pr(gs, 2, checks=[_check("a", run_id=1)]),
+        _pr(dt, 7, checks=[_check("a", run_id=1)]),
         _pr(ghc, 3, checks=[_check("a", run_id=1)]),
         _pr(idc, 4, checks=[_check("x", conclusion="failure", run_id=1)]),
-        _pr(zz, 5, checks=[_check("a", run_id=1)]),
         _pr(dev, 6, checks=[_check("a", run_id=1)]),
     ]
     board = arrange_board(build_cards(_env(repos, prs), now=NOW))
     assert board["platform"].full_name == "unified-systems-com/tap"
-    by_label = {col["label"]: col for col in board["products"]}
-    assert by_label["git-serious"]["card"].full_name == gs
-    assert by_label["samsite"]["card"] is None  # samsite itself did not move
-    # failed identity_core (low) sorts above green github_core (high): state first, then criticality
-    assert [m["card"].full_name for m in by_label["git-serious"]["members"]] == [
-        idc,
-        ghc,
-    ]
-    assert [m["card"].full_name for m in by_label["samsite"]["members"]] == [idc, ghc]
-    assert all(
-        m["duplicate"] and m["also_under"]
-        for col in board["products"]
-        for m in col["members"]
-    )
-    assert [c.full_name for c in board["plugins"]] == [zz]
+    assert [
+        (p["label"], p["card"].full_name if p["card"] else None)
+        for p in board["products"]
+    ] == [("git-serious", gs), ("samsite", None)]
+    # the plugins board: failed identity_core (low) before green github_core (high) before green double-tap (high, later name)
+    assert [c.full_name for c in board["plugins"]] == [idc, dt, ghc]
     assert [c.full_name for c in board["support"]] == [dev]
     assert sam not in {c.full_name for c in board["plugins"]}
