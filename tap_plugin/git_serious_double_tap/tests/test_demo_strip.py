@@ -106,7 +106,6 @@ def _env(
         "pull_requests": {"nodes": prs},
         "heads": heads or {"nodes": [], "edges": []},
         "collection_jobs": {"nodes": []},
-        "runs": {"nodes": []},
     }
 
 
@@ -534,32 +533,3 @@ def test_product_card_carries_its_plugin_table_with_counts_and_red_lines() -> No
         "git-core-tap",
         "tap-plugin-administrivia",
     ]  # record order
-
-
-def test_run_sparks_take_the_last_runs_oldest_first_with_buckets() -> None:
-    from tap_plugin.git_serious_double_tap.panels.demo_strip import (
-        SPARK_RUNS,
-        run_sparks,
-    )
-
-    def run(i: int, conclusion: str, status: str = "completed") -> dict[str, Any]:
-        return {
-            "entity_id": f"run-{i}",
-            "data": {
-                "full_name": "o/r",
-                "run_started_at": _iso(timedelta(hours=100 - i)),
-                "conclusion": conclusion,
-                "status": status,
-                "html_url": f"https://gh/{i}",
-                "name": "ci",
-            },
-        }
-
-    nodes = [run(i, "success") for i in range(30)]
-    nodes += [run(40, "failure"), run(41, "", "in_progress"), run(42, "cancelled")]
-    sparks = run_sparks({"runs": {"nodes": nodes}})
-    strip = sparks["o/r"]
-    assert len(strip) == SPARK_RUNS
-    assert [t["bucket"] for t in strip[-3:]] == ["fail", "pend", "other"]
-    assert strip[-1]["url"] == "https://gh/42"
-    assert strip[0]["title"].startswith("ci · success · ")
