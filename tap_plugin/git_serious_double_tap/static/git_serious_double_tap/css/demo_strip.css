@@ -109,3 +109,12 @@
 .dts-plugin--failing td.dts-plugins-name a { color: var(--dts-fail); font-weight: 600; }
 .dts-plugin--quiet td.dts-plugins-name a { color: var(--dts-muted); font-weight: 400; }
 .dts-plugin--offgrid td.dts-plugins-name a { color: var(--dts-faint); font-style: italic; }
+
+/* The runs sparkline on a plugin line: one tick per run, oldest on the left. */
+.dts-plugins th.dts-plugins-spark, .dts-plugins td.dts-plugins-spark { text-align: left; width: 88px; padding-left: 0.6rem; }
+.dts-spark { display: block; }
+.dts-spark-tick { fill: var(--dts-faint); }
+.dts-spark--ok { fill: var(--dts-good); }
+.dts-spark--fail { fill: var(--dts-fail); }
+.dts-spark--pend { fill: var(--dts-pend); }
+.dts-spark--other { fill: var(--dts-quiet); }

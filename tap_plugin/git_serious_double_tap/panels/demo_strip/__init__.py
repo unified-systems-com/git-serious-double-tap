@@ -86,7 +86,12 @@ QUERIES: dict[str, str] = {
         "RETURN p, c"
     ),
     "collection_jobs": "MATCH (j:collection_job) RETURN j",
+    # The sparklines: every collected run, folded per repository into the last SPARK_RUNS.
+    "runs": "MATCH (r:github_core__github_actions_run) RETURN r",
 }
+
+#: Runs per sparkline, oldest on the left.
+SPARK_RUNS = 20
 
 #: The collector whose jobs the readiness line reads. Matched on the job name prefix because the
 #: job node carries no collector slug in its data.
@@ -256,7 +261,7 @@ class DemoStripPanelType:
         return {
             "strip_error": None,
             "cards": cards,
-            "board": arrange_board(cards, repo_index(env)),
+            "board": arrange_board(cards, repo_index(env), run_sparks(env)),
             "board_issue": BOARD_ISSUE,
             "board_issue_url": BOARD_ISSUE_URL,
             "summary": board_summary(cards),
@@ -618,8 +623,53 @@ def _quiet_card(repo: dict[str, Any]) -> Card:
     return card
 
 
+def _spark_bucket(run: dict[str, Any]) -> str:
+    """One run → one tick colour: ok / fail / pend / other (cancelled, skipped, neutral)."""
+    conclusion = str(run.get("conclusion") or "").lower()
+    status = str(run.get("status") or "").lower()
+    if conclusion in _PASSED:
+        return "ok"
+    if conclusion in _FAILED:
+        return "fail"
+    if not conclusion and status in _PENDING:
+        return "pend"
+    return "other"
+
+
+def run_sparks(env: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    """Per repository, its last SPARK_RUNS runs oldest → newest: a bucket, a title and a link each."""
+    by_repo: dict[str, list[dict[str, Any]]] = {}
+    for node in env.get("runs", {}).get("nodes", []):
+        run = _data(node)
+        name = str(run.get("full_name") or "")
+        started = _parse_ts(run.get("run_started_at")) or _parse_ts(
+            run.get("created_at")
+        )
+        if not name or started is None:
+            continue
+        outcome = run.get("conclusion") or run.get("status") or "?"
+        by_repo.setdefault(name, []).append(
+            {
+                "started": started,
+                "bucket": _spark_bucket(run),
+                "url": str(run.get("html_url") or ""),
+                "title": f"{run.get('name') or 'run'} · {outcome} · {started.strftime('%Y-%m-%d %H:%M')} UTC",
+            }
+        )
+    out: dict[str, list[dict[str, Any]]] = {}
+    for name, runs in by_repo.items():
+        runs.sort(key=lambda r: r["started"])
+        out[name] = [
+            {k: v for k, v in r.items() if k != "started"} for r in runs[-SPARK_RUNS:]
+        ]
+    return out
+
+
 def plugin_table(
-    product: str, by_name: dict[str, Card], repos: dict[str, dict[str, Any]]
+    product: str,
+    by_name: dict[str, Card],
+    repos: dict[str, dict[str, Any]],
+    sparks: dict[str, list[dict[str, Any]]] | None = None,
 ) -> list[dict[str, Any]]:
     """One line per plugin the product's record names: open PRs, passing, failing, waiting, red when
     anything fails. A plugin with nothing open is a quiet line, not a missing one."""
@@ -665,13 +715,16 @@ def plugin_table(
                 "unobservable": unobs,
                 "state": card.state if card else "quiet",
                 "on_grid": name in repos,
+                "spark": (sparks or {}).get(name, []),
             }
         )
     return lines
 
 
 def arrange_board(
-    cards: list[Card], repos: dict[str, dict[str, Any]] | None = None
+    cards: list[Card],
+    repos: dict[str, dict[str, Any]] | None = None,
+    sparks: dict[str, list[dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
     """Place the movers: the platform on top, the products across their row (each with its plugin
     table), the plugins board, support.
@@ -697,7 +750,7 @@ def arrange_board(
                 "full_name": full_name,
                 "label": label,
                 "card": card,
-                "plugins": plugin_table(full_name, by_name, repos),
+                "plugins": plugin_table(full_name, by_name, repos, sparks),
             }
         )
     rest = [c for c in cards if c.full_name not in placed]
