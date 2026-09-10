@@ -262,6 +262,22 @@ system already teaches — the board, then the order of the cards, then one card
    (*Fix 2 failing checks on #83* · *Look — checks not observable on #7* · *Wait — 3 checks still
    running on #7* · *Review — #344 green* · *nothing open — latest merge #55*), then the rows.
 
+**The board** (v0.5.0, George 2026-09-09): the movers are placed, not listed. Row one is the
+platform, unified-systems-com/tap, alone and centred at half the width — the parent gets its own
+row. Row two, under a hairline and the heading *Products*, is one column per product (git-serious,
+samsite): the product's own card, then the plugins that product's boot record names, in a column
+beneath it, ordered by state (failed, not observable, waiting, green) and then criticality. A plugin
+named by more than one product's record is a card in each column, marked *also under …*; hovering
+one lights every card of that repository. Plugins no product record names get a row of their own;
+support and fixture repositories a *Support* row last. Movers only: a card exists because it moved;
+the board only decides where it sits.
+
+The product → plugin sets are **hardcoded** in the panel (`PRODUCT_PLUGINS`), copied from the two
+products' in-package boot records on 2026-09-09, and samsite is a product here although the org's
+role property says plugin. The page carries a note-to-self pointing at Issue# 21 - git-serious-double-tap,
+the reminder to derive them properly from the records through a tap-specific management surface
+rather than an ad-hoc github_core addition. The collection line shows the viewer's local time.
+
 Nudge precedence is by what the reader must do, worst first: failed > not observable > pending >
 green > quiet. *Green* deliberately says *review it*, never *merge*: passing checks do not
 establish approval, conflicts or merge readiness (the hover says so). Colour is spent only on
@@ -294,6 +310,7 @@ record already orders. Data contract: github_core ≥ the release that ships `pu
 | req-git-serious-double-tap-page-strip-4 | Three Observability States | Implemented | unobservable / none / observed render distinct text and none reads green; a merge-only repository shows the latest merge number. | `test_check_observability_three_states_never_read_green`, `test_merged_only_repository_shows_latest_merge_and_no_rows` |
 | req-git-serious-double-tap-page-strip-5 | Freshness Said | Implemented | never / fresh / stale / failed from the github_core collection jobs only; never-succeeded outranks failed. | `test_collection_line_four_states`, `test_collection_line_ignores_other_collectors` |
 | req-git-serious-double-tap-page-strip-7 | One Nudge Per Card | Implemented | Every card carries exactly one state, verb and headline by the precedence failed > unobservable > pending > green > quiet; the board's summary line counts cards by state in that order with zeros omitted. | `test_card_state_and_nudge_precedence`, `test_board_summary_counts_in_board_order_without_zeros` |
+| req-git-serious-double-tap-page-strip-8 | The Board | Implemented | Platform row, product columns from `PRODUCT_PLUGINS` ordered state-then-criticality, duplicates flagged with their other products, unplaced plugins and support rows, the note-to-self naming Issue# 21. | `test_board_places_platform_products_duplicates_and_support` |
 | req-git-serious-double-tap-page-strip-6 | Live | Implemented | On the 8010 grid after a collection (2026-09-08): five cards, critical → high → unclassified, PR rows with passed counts and pending names, collection line fresh. | Observed by hand; a boot-and-test lane for this repo is #4. |
 
 ### Design Fundamentals
