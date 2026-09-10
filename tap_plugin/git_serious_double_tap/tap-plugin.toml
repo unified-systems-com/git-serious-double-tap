@@ -10,6 +10,7 @@ description = "The unified-systems-com instance configuration for git-serious: t
 # population order), not an import-time edge. See pyproject.toml.
 depends_on = [
     { slug = "git_serious", note = "The tap page mounts git_serious's panels by id (git-serious-double-tap#11); the strip links to git_serious's pages." },
+    { slug = "zizmor", note = "This instance seeds zizmor's pages and fires its collector after github_core, so the slug must resolve at boot — the record's cold-resolve gate checks exactly that. Offline and credential-free; its two non-validated crypto providers are waived in both records that install it." },
 ]
 
 # Pure configuration — no crypto, no native deps (spec-fips.md, req-tap-plugin-manifest-v0-fips).
@@ -28,9 +29,9 @@ tap_repository = "grift/tap-repository.grift.json"
 [[boot.records]]
 name = "git_serious_double_tap"
 description = "unified-systems-com instance of git-serious: the product's closure + the double-tap plugin, seeded in order, collector fired against the org, landing page pinned to /double-tap (web.landing_entity_id + web.landing_slug)."
-sha256 = "fd532618260fa81ee3561acb874dc4541bd5ae4a68c6b0a3fb8c00d6724dc15c"
+sha256 = "e16364351a66b3d2c4ba1d93c96c292621db7c9f5fc32267ef8d145f0ad8b9bd"
 
 [[boot.records]]
 name = "ci"
 description = "RESERVED NAME (req-boot-bootstrap-ci-record): the stack this plugin's own tests run in — depends_on closure + self, offline, credential-free. The consumer flips self to editable."
-sha256 = "4d387f8f7f346452b0b4f075cf53872560464ff3a9166474ef12b1692416b4ff"
+sha256 = "6d014000d46e74c163499cf4dbff70284d05054a12c6d9d19e2af9646b5c023a"

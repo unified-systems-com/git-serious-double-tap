@@ -6,10 +6,10 @@
       "scope": "github_core",
       "key": "collector",
       "kind": "github",
-      "note": "The combined `github` envelope (github_core >= v0.5.0, req-github-core-app-auth): an `app` block — a READ-ONLY GitHub App installed on the observed account (`data.owner`), minted with github_core's create-github-app skill — and/or a `pat` block — a fine-grained READ-ONLY PAT whose resource owner is the observed account, minted by hand in GitHub's UI — routed per collection source, never by preference order. Legacy `github_pat` / `github_app` envelopes still fold on read. Permissions are the union of what github_core's collection manifest declares per source; its App-permission ledger (github_app_permissions.json) is the authoritative list, and packages stay unobservable under an App credential until GitHub enables that surface for Apps."
+      "note": "The combined `github` envelope (github_core >= v0.5.0, req-github-core-app-auth): an `app` block \u2014 a READ-ONLY GitHub App installed on the observed account (`data.owner`), minted with github_core's create-github-app skill \u2014 and/or a `pat` block \u2014 a fine-grained READ-ONLY PAT whose resource owner is the observed account, minted by hand in GitHub's UI \u2014 routed per collection source, never by preference order. Legacy `github_pat` / `github_app` envelopes still fold on read. Permissions are the union of what github_core's collection manifest declares per source; its App-permission ledger (github_app_permissions.json) is the authoritative list, and packages stay unobservable under an App credential until GitHub enables that surface for Apps."
     }
   ],
-  "description": "git-serious double-tap — the unified-systems-com INSTANCE composition: git-serious (the product, plan/product-map.md) plus the double-tap plugin that holds only what is specific to observing the organization that builds TAP. Installs the product's closure exactly as git-serious's own record does (git_core first, then identity_core, github_core, administrivia at the same pins; git_serious from its repo), then the instance plugin; seeds the product's pages, then the instance's; fires the github_core collector against unified-systems-com. The landing page is decided HERE, by the operator, per req-web-page-landing: web pins the /double-tap page by entity id with its slug as a verified assertion — git-serious alone lands on /git-serious, this composition lands on /double-tap. DEV-PHASE record: git_serious and git_serious_double_tap pin branches until each has a tagged release (req-boot-bootstrap-stage0-3); the first tagged release replaces them and drops the marker.",
+  "description": "git-serious double-tap \u2014 the unified-systems-com INSTANCE composition: git-serious (the product, plan/product-map.md) plus the double-tap plugin that holds only what is specific to observing the organization that builds TAP. Installs the product's closure exactly as git-serious's own record does (git_core first, then identity_core, github_core, administrivia at the same pins; git_serious from its repo), then the instance plugin; seeds the product's pages, then the instance's; fires the github_core collector against unified-systems-com. The landing page is decided HERE, by the operator, per req-web-page-landing: web pins the /double-tap page by entity id with its slug as a verified assertion \u2014 git-serious alone lands on /git-serious, this composition lands on /double-tap. DEV-PHASE record: git_serious and git_serious_double_tap pin branches until each has a tagged release (req-boot-bootstrap-stage0-3); the first tagged release replaces them and drops the marker.",
   "install": {
     "plugins": [
       {
@@ -50,7 +50,17 @@
           "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
           "rev": "v0.6.0"
         },
-        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary + collector, account-scoped (req-github-core-org-scope), pinned at v0.5.0; NOT seeded here — its repo landing page is samsite-shaped (/samsite/repo) and git-serious owns its own pages."
+        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary + collector, account-scoped (req-github-core-org-scope), pinned at v0.5.0; NOT seeded here \u2014 its repo landing page is samsite-shaped (/samsite/repo) and git-serious owns its own pages."
+      },
+      {
+        "slug": "zizmor",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/zizmor-tap",
+          "rev": "main"
+        },
+        "note": "Package-mode (tap_plugin.zizmor). GitHub Actions workflow audits, consumed OFFLINE: the collector reads the workflow YAML github_core already landed and runs the pinned zizmor binary over it, so it declares no required_secrets and reaches no network. Placed after github_core because it imports github_core's models to resolve workflow, job and action endpoints; the pre-boot gate checks that order. Rides `main` for now, as git_serious does \u2014 move to an immutable tag once zizmor-tap cuts its first release."
       },
       {
         "slug": "git_serious",
@@ -91,6 +101,12 @@
       },
       {
         "type": "seed-plugin",
+        "plugin": "zizmor",
+        "enabled": true,
+        "note": "zizmor's own bundles: the /zizmor landing page (about, findings, coverage, runs) and the schedule that re-audits on its own cadence. Owned by the plugin rather than by this instance because the finding set is a property of the scanner and its pin, not of this instance's pages."
+      },
+      {
+        "type": "seed-plugin",
         "plugin": "git_serious_double_tap",
         "enabled": true,
         "note": "The instance's pages. MUST follow git_serious's seed: its USES_PANEL edges target panels git_serious seeds, and the importer only warns on a dangling endpoint."
@@ -103,12 +119,31 @@
           "github_core:collector"
         ],
         "timeout_seconds": 600,
-        "note": "Pulls the configured scope onto the grid: the account's repositories, workflows, runs, jobs, runners, apps. Fires against whatever github_pat envelope is placed — until the account-scoped PAT lands this is the shared repos-only credential, which makes the first boot an end-to-end smoke test of the collector path rather than the org picture."
+        "note": "Pulls the configured scope onto the grid: the account's repositories, workflows, runs, jobs, runners, apps. Fires against whatever github_pat envelope is placed \u2014 until the account-scoped PAT lands this is the shared repos-only credential, which makes the first boot an end-to-end smoke test of the collector path rather than the org picture."
+      },
+      {
+        "type": "fire-collector",
+        "key": "zizmor:zizmor",
+        "enabled": true,
+        "timeout_seconds": 900,
+        "note": "MUST stay after github_core:github_core. Its input is the workflow YAML that step lands, and the collector refuses to produce findings it cannot attribute to a completed github_core collection. It also guards its own freshness: a fire that finds a github_core collection still in flight finalizes as skipped and creates no run node rather than auditing rows mid-write, so reordering these two makes zizmor silently produce nothing. No secrets: the run is offline and credential-free."
       }
     ]
   },
   "web": {
     "landing_entity_id": "01a081d1-f90f-76ff-b882-491af67b9d4b",
     "landing_slug": "/double-tap"
-  }
+  },
+  "fips_waivers": [
+    {
+      "artifact": "*/bin/zizmor",
+      "provider": "boringssl",
+      "reason": "zizmor's wheel is one static Rust binary that links boringssl (via ring) and aws-lc-rs for an HTTPS client used only by its ONLINE audits. This plugin invokes it with --offline and hands it an environment carrying no GitHub token, so the providers are present in the artifact but never execute a security operation. No TAP data is encrypted, signed or hashed by them. Re-decide when req-zizmor-online-audits ships: that turns the providers from present-but-unreached into actually executing. (Scoped by `artifact` rather than `plugin`: tap.crypto_bom.load_waivers resolves `entry.get('artifact') or entry.get('plugin')`, so supplying both would silently drop the plugin key \u2014 a field that reads as if it narrows the waiver and does not.)"
+    },
+    {
+      "artifact": "*/bin/zizmor",
+      "provider": "rust-aws-lc-rs",
+      "reason": "The second non-validated provider in the same static binary, waived on the same basis and with the same re-decision trigger. AWS-LC has a FIPS 140-3 validated module, but it ships as a separate crate (aws-lc-fips-sys) that zizmor's build does not select, so the binary is not the validated module even though the library it embeds is validatable. (Scoped by `artifact` rather than `plugin`: tap.crypto_bom.load_waivers resolves `entry.get('artifact') or entry.get('plugin')`, so supplying both would silently drop the plugin key \u2014 a field that reads as if it narrows the waiver and does not.)"
+    }
+  ]
 }
