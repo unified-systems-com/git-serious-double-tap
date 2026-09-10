@@ -1,6 +1,6 @@
 manifest_version = "0"
 plugin_version = "0.1.0"
-requires_tap = ">=0.1.5"
+requires_tap = ">=0.1.6"
 slug = "git_serious_double_tap"
 name = "git-serious double-tap"
 description = "The unified-systems-com instance configuration for git-serious: the pages and panels specific to observing the organization that builds TAP. A double-tap plugin — one that introspects the TAP system itself."
