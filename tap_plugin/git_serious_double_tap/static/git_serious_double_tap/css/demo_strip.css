@@ -5,7 +5,7 @@
    kept from the Tufte pass: hairlines inside a card, small caps for the repository, tabular
    digits, and colour spent only on state. */
 .dts { --dts-ink: #1b1d22; --dts-muted: #5d6270; --dts-faint: #9a9fab; --dts-ground: #f1f0ec; --dts-surface: #ffffff; --dts-edge: #d8d6cf; --dts-rule: #e7e5df;
-       --dts-link: #1e4f8a; --dts-fail: #b42318; --dts-pend: #a15c00; --dts-good: #1f7a3a; --dts-quiet: #b8b5ad; --dts-look: #6f42c1;
+       --dts-link: #1e4f8a; --dts-fail: #b42318; --dts-pend: #a15c00; --dts-good: #1f7a3a; --dts-spark-ok: #b7cfbc; --dts-quiet: #b8b5ad; --dts-look: #6f42c1;
        font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.4; color: var(--dts-ink);
        background: var(--dts-ground); padding: 1.1rem 1.6rem 1.6rem; }
 .dts a { color: var(--dts-link); text-decoration: none; }
@@ -76,7 +76,7 @@
 .dts-merge { font-size: 0.85rem; }
 @media (prefers-color-scheme: dark) {
   .dts { --dts-ink: #e8e8e3; --dts-muted: #a5a8b0; --dts-faint: #6f737c; --dts-ground: #17181b; --dts-surface: #202226; --dts-edge: #33363c; --dts-rule: #2b2e33;
-         --dts-link: #7fb0ea; --dts-fail: #ff7b6e; --dts-pend: #e0a53c; --dts-good: #5fcf7a; --dts-quiet: #44474d; --dts-look: #b79cf0; }
+         --dts-link: #7fb0ea; --dts-fail: #ff7b6e; --dts-pend: #e0a53c; --dts-good: #5fcf7a; --dts-spark-ok: #3f6b4c; --dts-quiet: #44474d; --dts-look: #b79cf0; }
   .dts-card { box-shadow: none; }
 }
 
@@ -112,9 +112,9 @@
 
 /* The runs sparkline on a plugin line: one tick per run, oldest on the left. */
 .dts-plugins th.dts-plugins-spark, .dts-plugins td.dts-plugins-spark { text-align: left; width: 88px; padding-left: 0.6rem; }
-.dts-spark { display: block; }
+.dts-spark { display: block; overflow: visible; }
 .dts-spark-tick { fill: var(--dts-faint); }
-.dts-spark--ok { fill: var(--dts-good); }
+.dts-spark--ok { fill: var(--dts-spark-ok); }
 .dts-spark--fail { fill: var(--dts-fail); }
 .dts-spark--pend { fill: var(--dts-pend); }
 .dts-spark--other { fill: var(--dts-quiet); }

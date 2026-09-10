@@ -652,6 +652,10 @@ def run_sparks(env: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]
             {
                 "started": started,
                 "bucket": _spark_bucket(run),
+                # A pass is a short pale tick on the baseline; anything else is a full-height spike,
+                # so the eye reads the exceptions and not a red/green stripe pattern.
+                "y": 8 if _spark_bucket(run) == "ok" else 0,
+                "height": 4 if _spark_bucket(run) == "ok" else 12,
                 "url": str(run.get("html_url") or ""),
                 "title": f"{run.get('name') or 'run'} · {outcome} · {started.strftime('%Y-%m-%d %H:%M')} UTC",
             }

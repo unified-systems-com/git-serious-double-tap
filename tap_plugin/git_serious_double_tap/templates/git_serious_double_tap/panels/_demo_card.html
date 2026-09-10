@@ -44,7 +44,7 @@
                     <td class="dts-plugins-pass">{% if pl.passing %}{{ pl.passing }}{% else %}<span class="dts-plugins-dash">–</span>{% endif %}</td>
                     <td class="dts-plugins-fail">{% if pl.failing %}{{ pl.failing }}{% else %}<span class="dts-plugins-dash">–</span>{% endif %}</td>
                     <td class="dts-plugins-wait">{% if pl.waiting %}{{ pl.waiting }}{% else %}<span class="dts-plugins-dash">–</span>{% endif %}</td>
-                    <td class="dts-plugins-spark">{% if pl.spark %}<svg class="dts-spark" viewBox="0 0 80 12" width="80" height="12" role="img" aria-label="last {{ pl.spark|length }} runs">{% for t in pl.spark %}<a href="{{ t.url }}" target="_blank" rel="noopener"><title>{{ t.title }}</title><rect class="dts-spark-tick dts-spark--{{ t.bucket }}" x="{{ forloop.counter0|add:forloop.counter0|add:forloop.counter0|add:forloop.counter0 }}" y="0" width="3" height="12" rx="0.5"/></a>{% endfor %}</svg>{% else %}<span class="dts-plugins-dash">–</span>{% endif %}</td>
+                    <td class="dts-plugins-spark">{% if pl.spark %}<svg class="dts-spark" viewBox="0 0 80 12" width="80" height="12" role="img" aria-label="last {{ pl.spark|length }} runs">{% for t in pl.spark %}<a href="{{ t.url }}" target="_blank" rel="noopener"><title>{{ t.title }}</title><rect class="dts-spark-tick dts-spark--{{ t.bucket }}" x="{{ forloop.counter0|add:forloop.counter0|add:forloop.counter0|add:forloop.counter0 }}" y="{{ t.y }}" width="3" height="{{ t.height }}" rx="0.5"/></a>{% endfor %}</svg>{% else %}<span class="dts-plugins-dash">–</span>{% endif %}</td>
                   </tr>
                 {% endfor %}
               </tbody>
