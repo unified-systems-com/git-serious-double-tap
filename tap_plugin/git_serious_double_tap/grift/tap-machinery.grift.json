@@ -122,7 +122,7 @@
           },
           "node": {
             "name": "Machinery · tap lanes",
-            "description": "unified-systems-com/tap's CI system as lanes: the PR gate front and centre, the publish chain to its left ending in the outputs, scheduled lanes below, the fleet lanes and the reusable baseline at the bottom, sources on the right. github_core's machinery projection drawn first, the tap lanes layout over it (the double-tap's own projection). Shares the generic repository page's scene searches; the page pins repo=unified-systems-com/tap.",
+            "description": "unified-systems-com/tap's CI system as lanes: the PR gate front and centre, the publish chain to its left ending in the outputs, scheduled lanes below, the fleet lanes and the reusable baseline at the bottom, sources on the right. github_core's machinery projection drawn first, the tap lanes layout over it (the double-tap's own projection). Shares the generic repository page's scene searches; the page pins repo=unified-systems-com/tap. GitHub nodes open their html_url in a new tab; a workflow box opens that workflow's page (github_core's generic workflow-and-job viewer) instead — the anatomy and its runs, with the link out to GitHub on the identity row.",
             "slug": "double-tap-tap-machinery",
             "view": "tap_viz/panels/graph_panel.html",
             "config": {
@@ -146,8 +146,11 @@
                 },
                 {
                   "entity_type": "github_core__github_workflow",
-                  "url_field": "html_url",
-                  "external": true
+                  "url_template": "/github_core/workflow?repo={data.full_name}&workflow={data.path}"
+                },
+                {
+                  "entity_type": "github_core__workflow_job",
+                  "url_template": "/github_core/workflow?repo={data.full_name}&workflow={data.workflow_path}"
                 },
                 {
                   "entity_type": "github_core__github_app",
