@@ -1,3 +1,4 @@
+{% load tap_time %}
 {% comment %}
 double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbols carry the state
 (✓ passed · ✕ failed · ◷ pending · ⊘ other); colour is a second channel, never the only one.
@@ -15,7 +16,7 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
       <p class="dts-collection dts-collection--{{ collection.state }}" title="Coverage: GitHub check runs and commit statuses on each pull request's current head, as of the last successful collection. Passing checks do not establish approval, conflicts or merge readiness.">
         {% if collection.state == "fresh" %}●{% elif collection.state == "stale" %}◔{% elif collection.state == "failed" %}✕{% else %}○{% endif %}
         {{ collection.text }}
-        {% if collection.last_success %}<time datetime="{{ collection.last_success|date:'c' }}">({{ collection.last_success|date:"H:i" }} UTC)</time>{% endif %}
+        {% if collection.last_success %}({{ collection.last_success|tap_localtime }}){% endif %}
       </p>
     {% endif %}
     {% if refresh_seconds %}
@@ -30,44 +31,37 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
       {% if collection and collection.state == "never" %}Nothing to show until a collection succeeds.{% else %}No repository had a pull request opened, pushed, merged or building in the last {{ window_hours }} hours.{% endif %}
     </p>
   {% else %}
-    <div class="dts-strip" role="list" aria-label="Repositories">
-      {% for card in cards %}
-        <article class="dts-card dts-card--{{ card.criticality }} dts-card--state-{{ card.state }}{% if not card.rows %} dts-card--empty{% endif %}" role="listitem" aria-label="{{ card.full_name }}: {{ card.verb }} {{ card.headline }}">
-          <header class="dts-card-head">
-            <a class="dts-repo" href="{{ card.page_url }}" title="{{ card.full_name }} — open the repository view">{{ card.name }}</a>
-            <span class="dts-crit dts-crit--{{ card.criticality }}" {% if card.criticality_note %}title="{{ card.criticality_note }}"{% endif %}>{{ card.criticality|capfirst }}</span>
-          </header>
-          <p class="dts-nudge dts-nudge--{{ card.state }}"{% if card.state == "green" %} title="Checks pass on the current head. Approval, conflicts and merge readiness are not established by checks — that decision is yours."{% endif %}>
-            {% if card.verb %}<b class="dts-verb">{{ card.verb }}</b>{% endif %}{% if card.lead %} {{ card.lead }}{% endif %}{% for number, url in card.targets %}{% if not forloop.first %},{% endif %} <a class="dts-target" href="{{ url }}" target="_blank" rel="noopener">PR #{{ number }}</a>{% endfor %}{% if card.tail %} {{ card.tail }}{% endif %}
-          </p>
-          {% if card.rows %}
-            <ul class="dts-rows">
-              {% for row in card.rows %}
-                <li class="dts-row">
-                  <a class="dts-pr" href="{{ row.html_url }}" target="_blank" rel="noopener" title="Open #{{ row.number }} on GitHub{% if row.head_sha %} · head {{ row.head_sha|slice:':7' }}{% endif %}">
-                    <span class="dts-num">#{{ row.number }}</span>
-                    <span class="dts-pr-title">{{ row.title }}</span>
-                    {% if row.is_draft %}<span class="dts-draft">draft</span>{% endif %}
-                  </a>
-                  <span class="dts-results">
-                    {% if row.checks_state == "unobservable" %}
-                      <span class="dts-res dts-res--unobs" title="GitHub refused the check rollup for this head">? checks not observable</span>
-                    {% elif row.checks_state == "none" %}
-                      <span class="dts-res dts-res--none" title="No check run or status has reported on this head">– no checks reported</span>
-                    {% else %}
-                      {% if row.passed %}<a class="dts-res dts-res--pass" href="{{ row.checks_url }}" target="_blank" rel="noopener" title="{{ row.passed }} distinct check{{ row.passed|pluralize }} passed on head {{ row.head_sha|slice:':7' }}">✓ {{ row.passed }} passed</a>{% endif %}
-                      {% for c in row.failed %}<a class="dts-res dts-res--fail" href="{{ c.url }}" target="_blank" rel="noopener" title="{{ c.app }}: {{ c.name }} — {{ c.detail }}">✕ {{ c.name }}</a>{% endfor %}
-                      {% for c in row.pending %}<a class="dts-res dts-res--pend" href="{{ c.url }}" target="_blank" rel="noopener" title="{{ c.app }}: {{ c.name }} — {{ c.detail }}">◷ {{ c.name }}</a>{% endfor %}
-                      {% for c in row.other %}<a class="dts-res dts-res--other" href="{{ c.url }}" target="_blank" rel="noopener" title="{{ c.app }}: {{ c.name }} — {{ c.detail }}">⊘ {{ c.name }} ({{ c.detail }})</a>{% endfor %}
-                      {% if not row.passed and not row.failed and not row.pending and not row.other %}<span class="dts-res dts-res--none">– no checks reported</span>{% endif %}
-                    {% endif %}
-                  </span>
-                </li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </article>
-      {% endfor %}
+    <div class="dts-board">
+      {% if board.platform %}
+        <section class="dts-row dts-row--platform" aria-label="Platform">
+          <div class="dts-platform">{% with card=board.platform duplicate=False %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}</div>
+        </section>
+      {% endif %}
+      <section class="dts-row dts-row--products" aria-label="Products">
+        <h3 class="dts-row-title">Products</h3>
+        <div class="dts-columns">
+          {% for col in board.products %}
+            <div class="dts-column" data-product="{{ col.full_name }}">
+              <h4 class="dts-column-title">{{ col.label }}</h4>
+              {% if col.card %}{% with card=col.card duplicate=False %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% else %}<p class="dts-column-quiet">nothing open on {{ col.label }} itself</p>{% endif %}
+              {% if col.members %}<div class="dts-column-plugins">{% for m in col.members %}{% with card=m.card duplicate=m.duplicate also_under=m.also_under %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% endfor %}</div>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% if board.plugins %}
+        <section class="dts-row" aria-label="Plugins in no product record">
+          <h3 class="dts-row-title">Plugins in no product record</h3>
+          <div class="dts-strip" role="list">{% for card in board.plugins %}{% with duplicate=False %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% endfor %}</div>
+        </section>
+      {% endif %}
+      {% if board.support %}
+        <section class="dts-row" aria-label="Support">
+          <h3 class="dts-row-title">Support</h3>
+          <div class="dts-strip" role="list">{% for card in board.support %}{% with duplicate=False %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% endfor %}</div>
+        </section>
+      {% endif %}
+      <p class="dts-note">Note to self: the product → plugin columns are hardcoded from each product's boot record (2026-09-09), and samsite is a product here although the org property says plugin. Build it properly: <a href="{{ board_issue_url }}" target="_blank" rel="noopener">Issue# {{ board_issue }} - git-serious-double-tap</a>.</p>
     </div>
   {% endif %}
 
@@ -102,3 +96,18 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
 })();
 </script>
 {% endif %}
+<script>
+(function () {
+  // Duplicates: a plugin in more than one product's record is a card in each column; hovering one
+  // lights every card of the same repository (req-git-serious-double-tap-page-strip, the board).
+  // The script sits after its section in the fragment, so look back to the nearest section.dts.
+  var me = document.currentScript;
+  var root = me && (me.closest("section.dts") || (me.previousElementSibling && me.previousElementSibling.closest && me.previousElementSibling.closest("section.dts")) || (me.parentElement && me.parentElement.querySelector("section.dts")));
+  if (!root) return;
+  root.querySelectorAll(".dts-card--duplicate[data-repo]").forEach(function (card) {
+    var twins = function () { return root.querySelectorAll('.dts-card[data-repo="' + card.getAttribute("data-repo") + '"]'); };
+    card.addEventListener("mouseenter", function () { twins().forEach(function (t) { t.classList.add("dts-card--lit"); }); });
+    card.addEventListener("mouseleave", function () { twins().forEach(function (t) { t.classList.remove("dts-card--lit"); }); });
+  });
+})();
+</script>

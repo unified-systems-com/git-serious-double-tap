@@ -135,6 +135,7 @@ class Card:
     page_url: str
     criticality: str
     criticality_note: str
+    role: str  # the org's repository-role property, "" when unset or unobservable
     last_activity: datetime | None
     rows: list[PullRow]
     latest_merge_number: int | None
@@ -167,6 +168,52 @@ STATE_LABELS: dict[str, str] = {
     "pending": "waiting on checks",
     "green": "to review",
     "quiet": "nothing to do",
+}
+
+
+#: The board's rows (George, 2026-09-09): the platform on top, then the products with the plugins
+#: each depends on in a column beneath it, then plugins no product record names, then support.
+PLATFORM = "unified-systems-com/tap"
+PRODUCTS: list[tuple[str, str]] = [
+    ("unified-systems-com/git-serious-tap", "git-serious"),
+    ("unified-systems-com/tap-plugin-samsite", "samsite"),
+]
+#: HARDCODED (Issue# 21 - git-serious-double-tap): copied by hand from each product's in-package boot
+#: record on 2026-09-09. The proper source is a tap-specific management surface that reads those
+#: records off each repository and emits product → plugin edges; until then this literal is the source
+#: and the page carries a note-to-self pointing at the issue. git-serious-double-tap is the instance
+#: plugin of git-serious and is placed under it by hand.
+PRODUCT_PLUGINS: dict[str, list[str]] = {
+    "unified-systems-com/git-serious-tap": [
+        "unified-systems-com/git-core-tap",
+        "unified-systems-com/tap-plugin-administrivia",
+        "unified-systems-com/tap-plugin-identity-core",
+        "unified-systems-com/tap-plugin-github-core",
+        "unified-systems-com/git-serious-double-tap",
+    ],
+    "unified-systems-com/tap-plugin-samsite": [
+        "unified-systems-com/tap-plugin-administrivia",
+        "unified-systems-com/tap-plugin-computing-core",
+        "unified-systems-com/tap-plugin-roscale",
+        "unified-systems-com/tap-plugin-identity-core",
+        "unified-systems-com/tap-plugin-aws-core",
+        "unified-systems-com/tap-plugin-sigstore-core",
+        "unified-systems-com/tap-plugin-github-core",
+        "unified-systems-com/tap-plugin-compliance-core",
+        "unified-systems-com/tap-plugin-fedramp-20x-ksi",
+        "unified-systems-com/tap-plugin-grid-fixtures",
+    ],
+}
+BOARD_ISSUE = 21
+BOARD_ISSUE_URL = f"https://github.com/unified-systems-com/git-serious-double-tap/issues/{BOARD_ISSUE}"
+
+#: Column order inside a product: what the reader has to do, worst first, then criticality.
+STATE_RANK: dict[str, int] = {
+    "failed": 0,
+    "unobservable": 1,
+    "pending": 2,
+    "green": 3,
+    "quiet": 4,
 }
 
 
@@ -207,6 +254,9 @@ class DemoStripPanelType:
         return {
             "strip_error": None,
             "cards": cards,
+            "board": arrange_board(cards),
+            "board_issue": BOARD_ISSUE,
+            "board_issue_url": BOARD_ISSUE_URL,
             "summary": board_summary(cards),
             "collection": collection,
             "window_hours": int(WINDOW.total_seconds() // 3600),
@@ -412,6 +462,10 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
         ]
         latest_merge = max((int(pr.get("number") or 0) for pr in merged), default=None)
         criticality, note = _criticality(repo)
+        props = repo.get("custom_properties") or {}
+        role = (
+            str(props.get("repository-role") or "") if isinstance(props, dict) else ""
+        )
         card = Card(
             entity_id=str(repo.get("entity_id") or ""),
             full_name=full_name,
@@ -425,6 +479,7 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
             ),
             criticality=criticality,
             criticality_note=note,
+            role=role,
             last_activity=max(qualifying),
             rows=open_rows,
             latest_merge_number=latest_merge,
@@ -504,6 +559,78 @@ def _summarize(card: Card) -> None:
             ]
         else:
             card.lead = "Nothing to do"
+
+
+def _column_order(card: Card) -> tuple[int, int, str]:
+    return (
+        STATE_RANK.get(card.state, len(STATE_RANK)),
+        CRITICALITY_RANK.get(card.criticality, len(CRITICALITY_RANK)),
+        card.full_name,
+    )
+
+
+def arrange_board(cards: list[Card]) -> dict[str, Any]:
+    """Place the movers on the board: platform row, product columns, unplaced plugins, support.
+
+    Movers only (George, 2026-09-09): a card exists because it moved; the board decides where it
+    sits. A plugin in more than one product's record appears in each column, marked as a duplicate
+    so the page can light its twins on hover. Within a column: state (worst first) then criticality.
+    """
+    by_name = {c.full_name: c for c in cards}
+    placed: set[str] = set()
+    platform = by_name.get(PLATFORM)
+    if platform is not None:
+        placed.add(PLATFORM)
+    counts: dict[str, int] = {}
+    for plugins in PRODUCT_PLUGINS.values():
+        for name in plugins:
+            if name in by_name:
+                counts[name] = counts.get(name, 0) + 1
+    products: list[dict[str, Any]] = []
+    for full_name, label in PRODUCTS:
+        product = by_name.get(full_name)
+        if product is not None:
+            placed.add(full_name)
+        members: list[dict[str, Any]] = []
+        for name in PRODUCT_PLUGINS.get(full_name, []):
+            card = by_name.get(name)
+            if card is None:
+                continue
+            placed.add(name)
+            others = [
+                lbl
+                for fn, lbl in PRODUCTS
+                if fn != full_name and name in PRODUCT_PLUGINS.get(fn, [])
+            ]
+            members.append(
+                {
+                    "card": card,
+                    "duplicate": counts.get(name, 0) > 1,
+                    "also_under": others,
+                }
+            )
+        members.sort(key=lambda m: _column_order(m["card"]))
+        products.append(
+            {
+                "full_name": full_name,
+                "label": label,
+                "card": product,
+                "members": members,
+            }
+        )
+    rest = [c for c in cards if c.full_name not in placed]
+    plugins = sorted(
+        (c for c in rest if c.role in ("plugin", "product")), key=_column_order
+    )
+    support = sorted(
+        (c for c in rest if c.role not in ("plugin", "product")), key=_column_order
+    )
+    return {
+        "platform": platform,
+        "products": products,
+        "plugins": plugins,
+        "support": support,
+    }
 
 
 def board_summary(cards: list[Card]) -> list[dict[str, Any]]:
