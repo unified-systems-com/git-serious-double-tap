@@ -42,7 +42,7 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
         <div class="dts-products">
           {% for col in board.products %}
             <div class="dts-product" data-product="{{ col.full_name }}">
-              {% if col.card %}{% with card=col.card %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% else %}<p class="dts-column-quiet">{{ col.label }}: nothing open</p>{% endif %}
+              {% if col.card %}{% with card=col.card plugin_rows=col.plugins %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endwith %}{% else %}<p class="dts-column-quiet">{{ col.label }}: not on the grid</p>{% endif %}
             </div>
           {% endfor %}
         </div>
@@ -59,7 +59,7 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
           <div class="dts-strip dts-strip--plugins" role="list">{% for card in board.support %}{% include "git_serious_double_tap/panels/_demo_card.html" %}{% endfor %}</div>
         </section>
       {% endif %}
-      <p class="dts-note">Note to self: the products row is a declared list (git-serious, samsite) — the org's role property says samsite is a plugin and git-serious-double-tap a product. Derive the row properly: <a href="{{ board_issue_url }}" target="_blank" rel="noopener">Issue# {{ board_issue }} - git-serious-double-tap</a>.</p>
+      <p class="dts-note">Note to self: the products row is a declared list (git-serious, samsite) and each product's plugin table is copied by hand from its boot record; the org's role property says samsite is a plugin and git-serious-double-tap a product. Derive both properly: <a href="{{ board_issue_url }}" target="_blank" rel="noopener">Issue# {{ board_issue }} - git-serious-double-tap</a>.</p>
     </div>
   {% endif %}
 

@@ -483,3 +483,53 @@ def test_board_places_platform_products_plugins_and_support() -> None:
     assert [c.full_name for c in board["plugins"]] == [idc, dt, ghc]
     assert [c.full_name for c in board["support"]] == [dev]
     assert sam not in {c.full_name for c in board["plugins"]}
+
+
+def test_product_card_carries_its_plugin_table_with_counts_and_red_lines() -> None:
+    from tap_plugin.git_serious_double_tap.panels.demo_strip import (
+        arrange_board,
+        repo_index,
+    )
+
+    gs = "unified-systems-com/git-serious-tap"
+    ghc = "unified-systems-com/tap-plugin-github-core"
+    idc = "unified-systems-com/tap-plugin-identity-core"
+    repos = [
+        _repo("unified-systems-com/tap", criticality="critical", role="platform"),
+        _repo(gs, role="product"),
+        _repo(ghc, criticality="high"),
+        _repo(idc, criticality="low"),
+    ]
+    prs = [
+        _pr(ghc, 3, checks=[_check("a", run_id=1)]),
+        _pr(
+            ghc,
+            8,
+            checks=[
+                _check("a", run_id=1),
+                _check("gate", conclusion="", status="queued", run_id=2),
+            ],
+        ),
+        _pr(idc, 4, checks=[_check("x", conclusion="failure", run_id=1)]),
+    ]
+    env = _env(repos, prs)
+    board = arrange_board(build_cards(env, now=NOW), repo_index(env))
+    gs_col = next(p for p in board["products"] if p["full_name"] == gs)
+    assert (
+        gs_col["card"] is not None and gs_col["card"].state == "quiet"
+    )  # git-serious did not move but keeps its card
+    table = {row["name"]: row for row in gs_col["plugins"]}
+    assert table["tap-plugin-github-core"]["open"] == 2
+    assert (
+        table["tap-plugin-github-core"]["passing"],
+        table["tap-plugin-github-core"]["waiting"],
+        table["tap-plugin-github-core"]["failing"],
+    ) == (1, 1, 0)
+    assert table["tap-plugin-identity-core"]["failing"] == 1
+    assert (
+        table["git-core-tap"]["on_grid"] is False and table["git-core-tap"]["open"] == 0
+    )
+    assert [row["name"] for row in gs_col["plugins"]][:2] == [
+        "git-core-tap",
+        "tap-plugin-administrivia",
+    ]  # record order

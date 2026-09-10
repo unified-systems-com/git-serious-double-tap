@@ -92,3 +92,20 @@
 .dts-column-quiet { margin: 0 0 0.6rem; font-size: 0.85rem; color: var(--dts-faint); font-style: italic; }
 .dts-note { margin: 0.4rem 0 0; padding-top: 0.6rem; border-top: 1px dashed var(--dts-edge); font-size: 0.8rem; color: var(--dts-muted); font-style: italic; }
 .dts-note a { color: var(--dts-link); }
+
+/* The product card's plugin table: the plugins its record names, one line each, red when any of
+   its open PRs has a failing check. */
+.dts-plugins { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.dts-plugins th { text-align: right; font-weight: 500; color: var(--dts-faint); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0 0.4rem 0.25rem; border-bottom: 1px solid var(--dts-rule); }
+.dts-plugins th.dts-plugins-name, .dts-plugins td.dts-plugins-name { text-align: left; padding-left: 0.5rem; }
+.dts-plugins td { text-align: right; padding: 0.18rem 0.4rem; border-bottom: 1px solid var(--dts-rule); color: var(--dts-muted); }
+.dts-plugins tr:last-child td { border-bottom: 0; }
+.dts-plugins td.dts-plugins-name a { color: var(--dts-ink); font-weight: 500; }
+.dts-plugins td.dts-plugins-pass { color: var(--dts-good); }
+.dts-plugins td.dts-plugins-fail { color: var(--dts-fail); font-weight: 600; }
+.dts-plugins td.dts-plugins-wait { color: var(--dts-pend); }
+.dts-plugins-dash { color: var(--dts-faint); font-weight: 400; }
+.dts-plugin--failing td.dts-plugins-name { border-left: 3px solid var(--dts-fail); padding-left: 0.35rem; }
+.dts-plugin--failing td.dts-plugins-name a { color: var(--dts-fail); font-weight: 600; }
+.dts-plugin--quiet td.dts-plugins-name a { color: var(--dts-muted); font-weight: 400; }
+.dts-plugin--offgrid td.dts-plugins-name a { color: var(--dts-faint); font-style: italic; }
