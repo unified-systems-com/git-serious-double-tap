@@ -241,14 +241,16 @@ export async function execute(context) {
             [T.account]: {name: "flow", aspect: 2.0, gap: 24, sort: "area-desc"},
             // The repository: sources | the pipelines block | outputs, the base's own columns.
             [T.repository]: ranked("order", {columnLayout: "stack"}),
-            // The block: the top row, then the scheduled line, then fleet, then the baseline.
+            // The block: the top row, then the scheduled line, then fleet AND baseline on one
+            // row (2026-09-10, George: the picture was too tall — three thin lanes stacked under
+            // the gate; fleet and baseline are both "called from elsewhere" and read fine side
+            // by side, the baseline still sliding under its scheduled caller).
             [T.pipelines]: {
-                name: "tiered-rows", rowGap: 28, itemGap: 24,
+                name: "tiered-rows", rowGap: 16, itemGap: 24,
                 tiers: [
                     {name: "top", entityTypes: [T.toprow]},
                     {name: "scheduled", entityTypes: [LANE_TYPE.scheduled]},
-                    {name: "fleet", entityTypes: [LANE_TYPE.fleet]},
-                    {name: "baseline", entityTypes: [LANE_TYPE.baseline]},
+                    {name: "called", entityTypes: [LANE_TYPE.fleet, LANE_TYPE.baseline]},
                 ],
             },
             // The top row: publish (outputs stage) to the left of the gate (pipelines stage).
@@ -261,7 +263,8 @@ export async function execute(context) {
             [LANE_TYPE.publish]: ranked("label", {columnLayout: "flow", flowAspect: 3.0}),
             // A workflow_run chain: one box per row, upstream first.
             [T.chain]: {name: "flow", aspect: 0.1, gap: 10, sort: "input"},
-            [LANE_TYPE.fleet]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
+            // Fleet reads as one row (a tall aspect stacked its two boxes and doubled the lane's height).
+            [LANE_TYPE.fleet]: ranked("order", {columnLayout: "flow", flowAspect: 12}),
             [LANE_TYPE.baseline]: ranked("order", {columnLayout: "flow", flowAspect: 3.2}),
             // The scheduled line: one row, by time of day.
             [LANE_TYPE.scheduled]: ranked("order", {columnLayout: "flow", flowAspect: 60}),
@@ -273,6 +276,7 @@ export async function execute(context) {
         _mirrorPublishJobs(cy, plan);
         _alignBaseline(cy, plan);
     }
+    _liftSources(cy);
     _placeRegistriesLeft(cy);
     placeParentLabels(cy, {anchor: "upper-left", inset: 8, parentFontSize: chrome.parentFontSize, parentFontWeight: chrome.parentFontWeight});
     settleStacks(cy);
@@ -307,6 +311,22 @@ function _alignBaseline(cy, plan) {
     const laneNode = cy.getElementById(String(first.node.data("_viewport_parent") || ""));
     if (laneNode.empty()) return;
     _shiftWithDescendants(cy, laneNode, caller.node.position("x") - first.node.position("x"), 0);
+}
+
+// The sources column (refs, their deck, the rulesets) comes out of the ranked layout centred on
+// the repository's height. Read top-down beside a pipelines block that is itself read top-down,
+// that leaves the branches floating mid-air (2026-09-10, George): line the column's top up with
+// the block's top instead. Runs before settleStacks so the branch deck re-settles on moved anchors.
+function _liftSources(cy) {
+    const block = cy.nodes(`[entity_type = "${T.pipelines}"]`).first();
+    if (block.empty()) return;
+    const repoId = String(block.data("_viewport_parent") || "");
+    const sources = cy.nodes(`[_stage = ${STAGE.sources}][_viewport_parent = "${repoId}"]`);
+    if (sources.empty()) return;
+    const inset = 8;
+    const dy = (block.boundingBox().y1 + inset) - sources.boundingBox().y1;
+    if (dy >= 0) return; // never push the column down past where the layout put it
+    sources.forEach((n) => _shiftWithDescendants(cy, n, 0, dy));
 }
 
 function _placeRegistriesLeft(cy) {
