@@ -12,7 +12,7 @@
 .dts a:hover, .dts a:focus { text-decoration: underline; text-underline-offset: 0.12em; }
 /* Level 1 — the board */
 .dts-head { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "title collection refresh" "summary summary summary"; column-gap: 1.4rem; row-gap: 0.35rem; align-items: baseline; margin-bottom: 1.1rem; }
-.dts-title { grid-area: title; font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif; font-size: 1.45rem; font-weight: 400; font-style: italic; margin: 0; }
+.dts-title { grid-area: title; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
 .dts-collection { grid-area: collection; margin: 0; font-size: 0.8rem; color: var(--dts-muted); }
 .dts-collection time { font-variant-numeric: tabular-nums; }
 .dts-collection--stale { color: var(--dts-pend); }
@@ -41,7 +41,7 @@
 .dts-card--state-green { border-left-color: var(--dts-good); }
 .dts-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.8rem; }
 .dts a.dts-repo { color: var(--dts-ink); }
-.dts-repo { font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif; font-variant: small-caps; letter-spacing: 0.05em; font-size: 1.08rem; color: var(--dts-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dts-repo { font-weight: 600; font-size: 1rem; color: var(--dts-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dts-crit { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dts-muted); white-space: nowrap; border: 1px solid var(--dts-edge); border-radius: 2px; padding: 0.05rem 0.35rem; }
 .dts-crit--critical { color: var(--dts-surface); background: var(--dts-ink); border-color: var(--dts-ink); }
 .dts-crit--high { border-color: var(--dts-muted); }
@@ -79,3 +79,33 @@
          --dts-link: #7fb0ea; --dts-fail: #ff7b6e; --dts-pend: #e0a53c; --dts-good: #5fcf7a; --dts-quiet: #44474d; --dts-look: #b79cf0; }
   .dts-card { box-shadow: none; }
 }
+
+/* The board (2026-09-09): platform on top, product columns beneath, support last. */
+.dts-board { display: flex; flex-direction: column; gap: 1.2rem; }
+.dts-band { display: block; border-top: 1px solid var(--dts-edge); padding-top: 0.7rem; }
+.dts-band--platform { border-top: 0; padding-top: 0; }
+.dts-band-title { display: block; margin: 0 0 0.6rem; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dts-muted); }
+.dts-platform { width: 50%; min-width: 26rem; margin: 0 auto; }
+/* Both boards fill the width; a product card is twice a plugin card (two across vs four). */
+.dts-products { display: grid; grid-template-columns: repeat(auto-fit, minmax(40rem, 1fr)); gap: 1rem; align-items: start; }
+.dts-strip--plugins { grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); gap: 1rem; }
+.dts-column-quiet { margin: 0 0 0.6rem; font-size: 0.85rem; color: var(--dts-faint); font-style: italic; }
+.dts-note { margin: 0.4rem 0 0; padding-top: 0.6rem; border-top: 1px dashed var(--dts-edge); font-size: 0.8rem; color: var(--dts-muted); font-style: italic; }
+.dts-note a { color: var(--dts-link); }
+
+/* The product card's plugin table: the plugins its record names, one line each, red when any of
+   its open PRs has a failing check. */
+.dts-plugins { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.dts-plugins th { text-align: right; font-weight: 500; color: var(--dts-faint); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0 0.4rem 0.25rem; border-bottom: 1px solid var(--dts-rule); }
+.dts-plugins th.dts-plugins-name, .dts-plugins td.dts-plugins-name { text-align: left; padding-left: 0.5rem; }
+.dts-plugins td { text-align: right; padding: 0.18rem 0.4rem; border-bottom: 1px solid var(--dts-rule); color: var(--dts-muted); }
+.dts-plugins tr:last-child td { border-bottom: 0; }
+.dts-plugins td.dts-plugins-name a { color: var(--dts-ink); font-weight: 500; }
+.dts-plugins td.dts-plugins-pass { color: var(--dts-good); }
+.dts-plugins td.dts-plugins-fail { color: var(--dts-fail); font-weight: 600; }
+.dts-plugins td.dts-plugins-wait { color: var(--dts-pend); }
+.dts-plugins-dash { color: var(--dts-faint); font-weight: 400; }
+.dts-plugin--failing td.dts-plugins-name { border-left: 3px solid var(--dts-fail); padding-left: 0.35rem; }
+.dts-plugin--failing td.dts-plugins-name a { color: var(--dts-fail); font-weight: 600; }
+.dts-plugin--quiet td.dts-plugins-name a { color: var(--dts-muted); font-weight: 400; }
+.dts-plugin--offgrid td.dts-plugins-name a { color: var(--dts-faint); font-style: italic; }
