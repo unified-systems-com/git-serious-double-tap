@@ -43,14 +43,24 @@
         "note": "Package-mode (tap_plugin.identity_core). Install-only substrate: the oidc_issuer convergence node github_core mints. No GRIFT seed."
       },
       {
+        "slug": "compliance_core",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/tap-plugin-compliance-core",
+          "rev": "v0.3.0"
+        },
+        "note": "Package-mode (tap_plugin.compliance_core). github_core >= v0.7.0 depends on it, so it installs BEFORE github_core \u2014 the pre-boot gate checks that order. Install-only substrate: no GRIFT seed."
+      },
+      {
         "slug": "github_core",
         "enabled": true,
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
-          "rev": "v0.6.0"
+          "rev": "v0.7.0"
         },
-        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary + collector, account-scoped (req-github-core-org-scope), pinned at v0.5.0; NOT seeded here \u2014 its repo landing page is samsite-shaped (/samsite/repo) and git-serious owns its own pages."
+        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary + collector, account-scoped (req-github-core-org-scope), pinned at v0.7.0; NOT seeded here \u2014 its repo landing page is samsite-shaped (/samsite/repo) and git-serious owns its own pages."
       },
       {
         "slug": "zizmor",
