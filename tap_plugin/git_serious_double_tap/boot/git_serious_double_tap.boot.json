@@ -60,7 +60,7 @@
           "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
           "rev": "v0.8.0"
         },
-        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary git_serious and zizmor both read. Pinned at v0.7.0 because git_serious's own main declares `tap-plugin-github-core>=0.7.0,<0.8` — at the previous v0.6.0 pin this profile could not install at all."
+        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary git_serious and zizmor both read. Pinned at v0.8.0: the release that ships the workflow-page bundle this record seeds and keys it on workflow_id (tap-plugin-github-core#102); git_serious declares `tap-plugin-github-core>=0.8.0,<0.9` from git-serious-tap#77 on. A pin below what git_serious declares cannot install at all (that was the v0.6.0 lesson, #28)."
       },
       {
         "slug": "zizmor",
