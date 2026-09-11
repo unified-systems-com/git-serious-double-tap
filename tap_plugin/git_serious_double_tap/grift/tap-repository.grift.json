@@ -6,15 +6,15 @@
   "batches": [
     {
       "batch_entity": {
-        "entity_id": "01a090d1-3865-75a6-9b30-db1250d2ff07",
+        "entity_id": "01a090d2-f59c-7130-95cb-f13611364009",
         "entity_type": "batch",
-        "name": "git-serious double-tap: tap repository page v0.6.0",
+        "name": "git-serious double-tap: tap repository page v0.7.0",
         "dimensions": {}
       },
       "batch_node": {
         "source": "tap_plugin.git_serious_double_tap.grift.tap_repository",
-        "name": "git-serious double-tap: tap repository page v0.6.0",
-        "description": "The tap repository's own page: one page node and five USES_PANEL edges onto git-serious's shared panels, each edge pinning repo=unified-systems-com/tap as a fixed input (tap#359). No panel or search of its own (git-serious-double-tap#11 retired the v0.1.0 copies). v0.3.0 (git-serious-double-tap#32, demo-land 2026-09-10): a sixth row, `findings`, after the open pull requests — the zizmor findings on this repository's workflow files, as a standard table over a search THIS bundle owns (the instance hardcodes the composition; the product-level home for this surface is git-serious-tap#73). Every row opens the finding on /zizmor/finding. Page node upsert (layout) plus one search, one panel and two edges; every prior id is stable, only the batch id moved. v0.4.0 (tap#425): the findings panel declares row_url_template, so a ROW click opens the finding on /zizmor/finding — the consumer names its route; core JS names none. Panel node upsert only. v0.5.0: links into the finding page carry workflow_id — the page seats the workflow's anatomy graph and reads it from the URL (zizmor-tap#33); the collector records location.workflow_id from zizmor-tap#34 on. v0.6.0 (tap#432, 2026-09-11): a seventh row after the security findings — Secrets named by workflows, the first PROJECTION-mode table (rows, not nodes): each workflow's secrets.X names, the ones no readable scope defines, and the scopes read; row click opens the annotated file. Needs tap-plugin-github-core PR# 105 on the grid for the tag to exist and tap#432 for the table to render rows."
+        "name": "git-serious double-tap: tap repository page v0.7.0",
+        "description": "The tap repository's own page: one page node and five USES_PANEL edges onto git-serious's shared panels, each edge pinning repo=unified-systems-com/tap as a fixed input (tap#359). No panel or search of its own (git-serious-double-tap#11 retired the v0.1.0 copies). v0.3.0 (git-serious-double-tap#32, demo-land 2026-09-10): a sixth row, `findings`, after the open pull requests — the zizmor findings on this repository's workflow files, as a standard table over a search THIS bundle owns (the instance hardcodes the composition; the product-level home for this surface is git-serious-tap#73). Every row opens the finding on /zizmor/finding. Page node upsert (layout) plus one search, one panel and two edges; every prior id is stable, only the batch id moved. v0.4.0 (tap#425): the findings panel declares row_url_template, so a ROW click opens the finding on /zizmor/finding — the consumer names its route; core JS names none. Panel node upsert only. v0.5.0: links into the finding page carry workflow_id — the page seats the workflow's anatomy graph and reads it from the URL (zizmor-tap#33); the collector records location.workflow_id from zizmor-tap#34 on. v0.6.0 (tap#432, 2026-09-11): a seventh row after the security findings — Secrets named by workflows, the first PROJECTION-mode table (rows, not nodes): each workflow's secrets.X names, the ones no readable scope defines, and the scopes read; row click opens the annotated file. Needs tap-plugin-github-core PR# 105 on the grid for the tag to exist and tap#432 for the table to render rows. v0.7.0: the secrets search drops workflows with no read body and orders the ones that cannot find a name first."
       },
       "nodes": [
         {
@@ -225,14 +225,15 @@
           },
           "node": {
             "name": "double-tap — the secrets each workflow of a repository names, and which it cannot find",
-            "description": "One row per workflow of the repository whose body github_core read: every `secrets.X` it names, the ones no readable scope defines (`missing`), and the scopes that were actually read — so an empty `missing` beside a short `scopes_read` is not the same claim as one beside all three (three states, never two). PROJECTION mode (rows, not nodes): the table renders the aliases as columns (tap#432). A workflow with no collected body has no tag and no row — the coverage panel on /zizmor names those. `missing` means named here and defined nowhere the credential could see; on this estate every such name is deliberate (TAP_CORE_RO_PAT went vestigial when the org went public), so the table says 'cannot find', never 'broken'.",
+            "description": "One row per workflow of the repository whose body github_core read: every `secrets.X` it names, the ones no readable scope defines (`missing`), and the scopes that were actually read — so an empty `missing` beside a short `scopes_read` is not the same claim as one beside all three (three states, never two). PROJECTION mode (rows, not nodes): the table renders the aliases as columns (tap#432). A workflow with no collected body has no tag and no row — the coverage panel on /zizmor names those. `missing` means named here and defined nowhere the credential could see; on this estate every such name is deliberate (TAP_CORE_RO_PAT went vestigial when the org went public), so the table says 'cannot find', never 'broken'. Only workflows whose body was read (the tag IS NOT NULL) — an unread file is not a row of blanks, it is the coverage panel's business. Ordered so the workflows naming something no scope defines come first (ORDER BY on an alias: allowed in projection mode, refused on a field path).",
             "search_type": "gryphon",
             "root": "node",
             "definition": {
               "query": [
                 "MATCH (w:github_core__github_workflow)",
-                "WHERE w.data.full_name = $repo",
-                "RETURN w.data.path AS workflow, w.data.tags.secret_refs.referenced AS named, w.data.tags.secret_refs.unresolved AS missing, w.data.tags.secret_refs.scopes_read AS scopes_read, w.data.workflow_id AS workflow_id"
+                "WHERE w.data.full_name = $repo AND w.data.tags.secret_refs.scopes_read IS NOT NULL",
+                "RETURN w.data.path AS workflow, w.data.tags.secret_refs.referenced AS named, w.data.tags.secret_refs.unresolved AS missing, w.data.tags.secret_refs.scopes_read AS scopes_read, w.data.workflow_id AS workflow_id",
+                "ORDER BY missing DESC"
               ]
             },
             "input_schema": {
