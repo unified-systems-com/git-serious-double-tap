@@ -6,15 +6,15 @@
   "batches": [
     {
       "batch_entity": {
-        "entity_id": "01a08ded-8650-76ff-a74e-bd76a7e4af8a",
+        "entity_id": "01a090d1-3865-75a6-9b30-db1250d2ff07",
         "entity_type": "batch",
-        "name": "git-serious double-tap: tap repository page v0.5.0",
+        "name": "git-serious double-tap: tap repository page v0.6.0",
         "dimensions": {}
       },
       "batch_node": {
         "source": "tap_plugin.git_serious_double_tap.grift.tap_repository",
-        "name": "git-serious double-tap: tap repository page v0.5.0",
-        "description": "The tap repository's own page: one page node and five USES_PANEL edges onto git-serious's shared panels, each edge pinning repo=unified-systems-com/tap as a fixed input (tap#359). No panel or search of its own (git-serious-double-tap#11 retired the v0.1.0 copies). v0.3.0 (git-serious-double-tap#32, demo-land 2026-09-10): a sixth row, `findings`, after the open pull requests — the zizmor findings on this repository's workflow files, as a standard table over a search THIS bundle owns (the instance hardcodes the composition; the product-level home for this surface is git-serious-tap#73). Every row opens the finding on /zizmor/finding. Page node upsert (layout) plus one search, one panel and two edges; every prior id is stable, only the batch id moved. v0.4.0 (tap#425): the findings panel declares row_url_template, so a ROW click opens the finding on /zizmor/finding — the consumer names its route; core JS names none. Panel node upsert only. v0.5.0: links into the finding page carry workflow_id — the page seats the workflow's anatomy graph and reads it from the URL (zizmor-tap#33); the collector records location.workflow_id from zizmor-tap#34 on."
+        "name": "git-serious double-tap: tap repository page v0.6.0",
+        "description": "The tap repository's own page: one page node and five USES_PANEL edges onto git-serious's shared panels, each edge pinning repo=unified-systems-com/tap as a fixed input (tap#359). No panel or search of its own (git-serious-double-tap#11 retired the v0.1.0 copies). v0.3.0 (git-serious-double-tap#32, demo-land 2026-09-10): a sixth row, `findings`, after the open pull requests — the zizmor findings on this repository's workflow files, as a standard table over a search THIS bundle owns (the instance hardcodes the composition; the product-level home for this surface is git-serious-tap#73). Every row opens the finding on /zizmor/finding. Page node upsert (layout) plus one search, one panel and two edges; every prior id is stable, only the batch id moved. v0.4.0 (tap#425): the findings panel declares row_url_template, so a ROW click opens the finding on /zizmor/finding — the consumer names its route; core JS names none. Panel node upsert only. v0.5.0: links into the finding page carry workflow_id — the page seats the workflow's anatomy graph and reads it from the URL (zizmor-tap#33); the collector records location.workflow_id from zizmor-tap#34 on. v0.6.0 (tap#432, 2026-09-11): a seventh row after the security findings — Secrets named by workflows, the first PROJECTION-mode table (rows, not nodes): each workflow's secrets.X names, the ones no readable scope defines, and the scopes read; row click opens the annotated file. Needs tap-plugin-github-core PR# 105 on the grid for the tag to exist and tap#432 for the table to render rows."
       },
       "nodes": [
         {
@@ -53,10 +53,14 @@
                       "height": "auto"
                     },
                     "row-5": {
-                      "panel-id": "status-wall",
+                      "panel-id": "secrets",
                       "height": "auto"
                     },
                     "row-6": {
+                      "panel-id": "status-wall",
+                      "height": "auto"
+                    },
+                    "row-7": {
                       "panel-id": "not-observed",
                       "height": "auto"
                     }
@@ -209,6 +213,96 @@
               "row_url_template": "/zizmor/finding?finding_id={entity_id}&workflow_id={data.location.workflow_id}"
             }
           }
+        },
+        {
+          "entity": {
+            "entity_id": "01a090d1-3865-75a6-9b30-db1321f2c95e",
+            "entity_type": "search",
+            "name": "double-tap — the secrets each workflow of a repository names, and which it cannot find",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "double-tap — the secrets each workflow of a repository names, and which it cannot find",
+            "description": "One row per workflow of the repository whose body github_core read: every `secrets.X` it names, the ones no readable scope defines (`missing`), and the scopes that were actually read — so an empty `missing` beside a short `scopes_read` is not the same claim as one beside all three (three states, never two). PROJECTION mode (rows, not nodes): the table renders the aliases as columns (tap#432). A workflow with no collected body has no tag and no row — the coverage panel on /zizmor names those. `missing` means named here and defined nowhere the credential could see; on this estate every such name is deliberate (TAP_CORE_RO_PAT went vestigial when the org went public), so the table says 'cannot find', never 'broken'.",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (w:github_core__github_workflow)",
+                "WHERE w.data.full_name = $repo",
+                "RETURN w.data.path AS workflow, w.data.tags.secret_refs.referenced AS named, w.data.tags.secret_refs.unresolved AS missing, w.data.tags.secret_refs.scopes_read AS scopes_read, w.data.workflow_id AS workflow_id"
+              ]
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "repo": {
+                  "type": "string",
+                  "description": "The repository's full_name; pinned by the slot on /double-tap/tap."
+                }
+              },
+              "required": [
+                "repo"
+              ],
+              "additionalProperties": false
+            },
+            "max_limit": 500
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a090d1-3865-75a6-9b30-db1412ff8dc9",
+            "entity_type": "panel",
+            "name": "Secrets named by workflows",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "slug": "double-tap-tap-secret-refs",
+            "name": "Secrets named by workflows",
+            "view": "tap_web/panels/table_panel.html",
+            "editor_view": "",
+            "description": "What each workflow file names with `secrets.X`, which of those names no readable scope defines, and which scopes were read. A name in `missing` gets an empty string at runtime and the job runs green — the silent failure this table exists to show. Row click opens the workflow's annotated file.",
+            "config": {
+              "hide_header": false,
+              "height": 420,
+              "quick_filter": true,
+              "default_page_size": 100,
+              "row_url_template": "/zizmor/workflow?workflow_id={workflow_id}",
+              "columns": [
+                {
+                  "field": "workflow",
+                  "title": "Workflow",
+                  "widthGrow": 2,
+                  "headerSort": true,
+                  "header_tooltip": "The workflow file. Click the row for the file with every zizmor finding called out."
+                },
+                {
+                  "field": "named",
+                  "title": "Names",
+                  "widthGrow": 2,
+                  "headerSort": true,
+                  "header_tooltip": "Every secrets.X the file names inside an expression. GITHUB_TOKEN is the built-in and is not counted."
+                },
+                {
+                  "field": "missing",
+                  "title": "Cannot find",
+                  "widthGrow": 2,
+                  "headerSort": true,
+                  "header_tooltip": "Names no readable scope defines — org, this repository, its environments. At runtime GitHub hands the step an empty string and the job runs anyway. On this estate these are deliberate: TAP_CORE_RO_PAT went vestigial when the org went public."
+                },
+                {
+                  "field": "scopes_read",
+                  "title": "Scopes read",
+                  "width": 220,
+                  "header_tooltip": "Which scopes the collector actually listed. 'Cannot find' is only ever a claim about these."
+                }
+              ]
+            }
+          }
         }
       ],
       "edges": [
@@ -357,6 +451,43 @@
                 "model": "page",
                 "spec": "page-panels",
                 "value": "findings"
+              },
+              "inputs": {
+                "repo": "unified-systems-com/tap"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a090d1-3865-75a6-9b30-db15f3153508",
+            "entity_type": "edge",
+            "name": "Secrets named by workflows USES_SEARCH secret refs per workflow",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a090d1-3865-75a6-9b30-db1412ff8dc9",
+            "to_entity_id": "01a090d1-3865-75a6-9b30-db1321f2c95e",
+            "edge_type": "USES_SEARCH",
+            "properties": {}
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a090d1-3865-75a6-9b30-db164d88cc55",
+            "entity_type": "edge",
+            "name": "tap USES_PANEL Secrets named by workflows",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a087a8-1e02-77d8-ba74-51eb319eab79",
+            "to_entity_id": "01a090d1-3865-75a6-9b30-db1412ff8dc9",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "secrets"
               },
               "inputs": {
                 "repo": "unified-systems-com/tap"
