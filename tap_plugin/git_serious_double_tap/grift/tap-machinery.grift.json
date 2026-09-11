@@ -6,15 +6,15 @@
   "batches": [
     {
       "batch_entity": {
-        "entity_id": "01a08804-4b2c-766d-9dec-9cb13af0e8a8",
+        "entity_id": "01a08ded-8650-76ff-a74e-bd77a1ac6aa9",
         "entity_type": "batch",
-        "name": "git-serious double-tap: tap machinery projection v0.1.0",
+        "name": "git-serious double-tap: tap machinery projection v0.8.0",
         "dimensions": {}
       },
       "batch_node": {
         "source": "tap_plugin.git_serious_double_tap.grift.tap_machinery",
-        "name": "git-serious double-tap: tap machinery projection v0.1.0",
-        "description": "The tap-specific machinery picture (req-git-serious-double-tap-tap-projection): a double-tap-owned projection whose one elevation runs TWO layouts on the same canvas — git_serious's machinery layout (github_core's machinery.js, referenced by entity id, never copied) and then the tap lanes layout (this plugin's tap-machinery.js), which regroups the repository's workflows into lanes by what starts them (PR gate · publish · scheduled · fleet · reusable baseline), places them by the cardinal map ruled 2026-09-09 (gate centre, publish left, scheduled below, fleet and baseline at the bottom, sources right), and draws the workflow-call and workflow_run edges across lanes. One graph panel owns the projection and shares the generic repository page's three scene searches by id; the tap page mounts it with the fixed input repo=unified-systems-com/tap. Out-of-file endpoints: git_serious's layout and searches, so git_serious seeds first."
+        "name": "git-serious double-tap: tap machinery projection v0.8.0",
+        "description": "The tap-specific machinery picture (req-git-serious-double-tap-tap-projection): a double-tap-owned projection whose one elevation runs TWO layouts on the same canvas — git_serious's machinery layout (github_core's machinery.js, referenced by entity id, never copied) and then the tap lanes layout (this plugin's tap-machinery.js), which regroups the repository's workflows into lanes by what starts them (PR gate · publish · scheduled · fleet · reusable baseline), places them by the cardinal map ruled 2026-09-09 (gate centre, publish left, scheduled below, fleet and baseline at the bottom, sources right), and draws the workflow-call and workflow_run edges across lanes. One graph panel owns the projection and shares the generic repository page's three scene searches by id; the tap page mounts it with the fixed input repo=unified-systems-com/tap. Out-of-file endpoints: git_serious's layout and searches, so git_serious seeds first. v0.2.0 (git-serious-double-tap#34): zizmor's verdict on every workflow card as three more status-badge sets owned by this projection — actionable findings (High/Medium, purple), advisory findings (Low/Informational, light purple), and NOT SCANNED (grey, the vocabulary already meaning we could not say) — each fed by a projection-mode search in this bundle; unparameterized on purpose, because badge searches take static inputs and the badge renders only on hosts present in the scene. Projection node upsert plus six search nodes; every prior id stable, batch id moved. v0.3.0 (tap#426): every finding row in a zizmor badge's info window links to the finding on /zizmor/finding — the detail searches return the finding's own id as finding_id and the three zizmor badge sets declare row_url_template over it. Search + projection node upserts; every id stable, batch id moved. v0.4.0 (George, 2026-09-10): the advisory (Low/Informational) badge is gone — one purple badge, actionable findings only; the table beneath still lists every severity. Its two searches leave the bundle; on a grid that already holds them they stay as unreferenced search nodes until an operator deletes them (a shipped bundle cannot express 'gone'). v0.5.0 (git-serious-double-tap#31): workflow and job clicks open github_core's workflow page by workflow_id, the key it takes since tap-plugin-github-core#101. Panel node upsert only. v0.6.0 (George, 2026-09-10): lock_nodes — the picture is a placed layout, not a sandbox; nothing drags once drawn (badges still open their info windows). Projection node upsert only. v0.7.0 (George, 2026-09-10): the github.com, unified-systems-com and repository boxes are containers, not destinations — their nav rules are gone, so a click on them does nothing; workflows, jobs and apps keep theirs. Panel node upsert only. v0.8.0: the info-window links into the finding page carry workflow_id (the page seats the workflow's anatomy graph, zizmor-tap#33); the detail search returns it."
       },
       "nodes": [
         {
@@ -26,7 +26,7 @@
           },
           "node": {
             "name": "double-tap tap machinery projection",
-            "description": "tap's machinery: github_core's machinery layout, then the tap lanes layout on top. Same declarative surface as git-serious's landing projection (machinery config, icon-badge node style, the two search-driven badge sets) with the elevation swapped for this plugin's.",
+            "description": "tap's machinery: github_core's machinery layout, then the tap lanes layout on top. Same declarative surface as git-serious's landing projection (machinery config, icon-badge node style, the two search-driven badge sets) with the elevation swapped for this plugin's. v0.2.0: two more badge sets carry zizmor onto the cards — actionable findings (purple) and not-scanned (grey, the third state); advisory findings live in the table, not on the card (v0.4.0).",
             "definition": {
               "node_style": {
                 "mode": "icon-badge"
@@ -64,13 +64,41 @@
                     "info_window": {
                       "search_id": "01a0630b-4f01-76d1-b7a0-e4dfc172d290"
                     }
+                  },
+                  {
+                    "name": "security-actionable",
+                    "label": "Actionable security findings (zizmor: High or Medium)",
+                    "color": "#8250DF",
+                    "text_color": "#FFFFFF",
+                    "population": {
+                      "type": "search",
+                      "search_id": "01a08d5d-3b85-7069-ba14-b4924b5ca4bd"
+                    },
+                    "info_window": {
+                      "search_id": "01a08d5d-3b85-7069-ba14-b4934cf4106c",
+                      "row_url_template": "/zizmor/finding?finding_id={finding_id}&workflow_id={workflow_id}"
+                    }
+                  },
+                  {
+                    "name": "not-scanned",
+                    "label": "zizmor could not read this workflow — findings unknown, not zero",
+                    "color": "#6E7781",
+                    "text_color": "#FFFFFF",
+                    "population": {
+                      "type": "search",
+                      "search_id": "01a08d5d-3b85-7069-ba14-b496dde90262"
+                    },
+                    "info_window": {
+                      "search_id": "01a08d5d-3b85-7069-ba14-b497174c219a"
+                    }
                   }
                 ]
               },
               "machinery": {
                 "flow": "rtl",
                 "stack_refs_over": 3
-              }
+              },
+              "lock_nodes": true
             }
           }
         },
@@ -130,27 +158,12 @@
               "hide_header": true,
               "nav_rules": [
                 {
-                  "entity_type": "github_core__github_platform",
-                  "url_field": "html_url",
-                  "external": true
-                },
-                {
-                  "entity_type": "github_core__github_account",
-                  "url_field": "html_url",
-                  "external": true
-                },
-                {
-                  "entity_type": "github_core__github_repository",
-                  "url_field": "html_url",
-                  "external": true
-                },
-                {
                   "entity_type": "github_core__github_workflow",
-                  "url_template": "/github_core/workflow?repo={data.full_name}&workflow={data.path}"
+                  "url_template": "/github_core/workflow?workflow_id={data.workflow_id}"
                 },
                 {
                   "entity_type": "github_core__workflow_job",
-                  "url_template": "/github_core/workflow?repo={data.full_name}&workflow={data.workflow_path}"
+                  "url_template": "/github_core/workflow?workflow_id={data.workflow_id}"
                 },
                 {
                   "entity_type": "github_core__github_app",
@@ -158,6 +171,106 @@
                   "external": true
                 }
               ]
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08d5d-3b85-7069-ba14-b4924b5ca4bd",
+            "entity_type": "search",
+            "name": "double-tap — actionable zizmor findings per workflow (count)",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap — actionable zizmor findings per workflow (count)",
+            "description": "How many High or Medium zizmor findings sit on each workflow's file. Cumulative, not current: zizmor does not tombstone yet (zizmor-tap#27), so a finding fixed since it was first seen still counts. Badge population rows (entity_id + count) per spec-viz-status-badge-info; org-wide on purpose — the badge renders only on workflow cards present in the scene.",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (f:zizmor__finding)-[:FLAGS_WORKFLOW__zizmor]->(w:github_core__github_workflow)",
+                "WHERE f.data.severity IN [\"High\", \"Medium\"]",
+                "RETURN w.entity_id AS entity_id, COUNT(f.entity_id) AS count"
+              ]
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08d5d-3b85-7069-ba14-b4934cf4106c",
+            "entity_type": "search",
+            "name": "double-tap — actionable zizmor findings per workflow (detail)",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap — actionable zizmor findings per workflow (detail)",
+            "description": "Info-window rows for the actionable badge: one per High or Medium finding, named by zizmor's summary; audit, severity and job ride along for a later columns config. finding_id is the finding's own entity id, the placeholder the badge set's row_url_template fills (tap#426).",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (f:zizmor__finding)-[:FLAGS_WORKFLOW__zizmor]->(w:github_core__github_workflow)",
+                "WHERE f.data.severity IN [\"High\", \"Medium\"]",
+                "RETURN w.entity_id AS entity_id, f.data.summary AS name, f.data.audit_id AS audit, f.data.severity AS severity, f.data.location.job_key AS job, f.entity_id AS finding_id, w.data.workflow_id AS workflow_id"
+              ]
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08d5d-3b85-7069-ba14-b496dde90262",
+            "entity_type": "search",
+            "name": "double-tap — workflows zizmor could not scan (count)",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap — workflows zizmor could not scan (count)",
+            "description": "The third state on the graph: workflows whose SCANNED_WORKFLOW outcome is anything but `evaluated` (no-yaml, parse-failed). A card with neither a purple nor a grey badge means zizmor READ the file and found nothing; this grey badge means it could not read it, so its findings are UNKNOWN, not zero. Edge properties are addressed as e.data.properties.<key>.",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (r:zizmor__run)-[e:SCANNED_WORKFLOW__zizmor]->(w:github_core__github_workflow)",
+                "WHERE e.data.properties.outcome != \"evaluated\"",
+                "RETURN w.entity_id AS entity_id, COUNT(w.entity_id) AS count"
+              ]
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a08d5d-3b85-7069-ba14-b497174c219a",
+            "entity_type": "search",
+            "name": "double-tap — workflows zizmor could not scan (detail)",
+            "dimensions": {}
+          },
+          "node": {
+            "name": "double-tap — workflows zizmor could not scan (detail)",
+            "description": "Info-window rows for the not-scanned badge: the outcome zizmor recorded for the workflow (no-yaml, parse-failed) and its path.",
+            "search_type": "gryphon",
+            "root": "node",
+            "definition": {
+              "query": [
+                "MATCH (r:zizmor__run)-[e:SCANNED_WORKFLOW__zizmor]->(w:github_core__github_workflow)",
+                "WHERE e.data.properties.outcome != \"evaluated\"",
+                "RETURN w.entity_id AS entity_id, e.data.properties.outcome AS name, w.data.path AS path"
+              ]
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {}
             }
           }
         }
