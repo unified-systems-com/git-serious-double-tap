@@ -6,15 +6,15 @@
   "batches": [
     {
       "batch_entity": {
-        "entity_id": "01a08da3-e579-771b-978d-6d95d9c7b00f",
+        "entity_id": "01a08ded-8650-76ff-a74e-bd77a1ac6aa9",
         "entity_type": "batch",
-        "name": "git-serious double-tap: tap machinery projection v0.7.0",
+        "name": "git-serious double-tap: tap machinery projection v0.8.0",
         "dimensions": {}
       },
       "batch_node": {
         "source": "tap_plugin.git_serious_double_tap.grift.tap_machinery",
-        "name": "git-serious double-tap: tap machinery projection v0.7.0",
-        "description": "The tap-specific machinery picture (req-git-serious-double-tap-tap-projection): a double-tap-owned projection whose one elevation runs TWO layouts on the same canvas — git_serious's machinery layout (github_core's machinery.js, referenced by entity id, never copied) and then the tap lanes layout (this plugin's tap-machinery.js), which regroups the repository's workflows into lanes by what starts them (PR gate · publish · scheduled · fleet · reusable baseline), places them by the cardinal map ruled 2026-09-09 (gate centre, publish left, scheduled below, fleet and baseline at the bottom, sources right), and draws the workflow-call and workflow_run edges across lanes. One graph panel owns the projection and shares the generic repository page's three scene searches by id; the tap page mounts it with the fixed input repo=unified-systems-com/tap. Out-of-file endpoints: git_serious's layout and searches, so git_serious seeds first. v0.2.0 (git-serious-double-tap#34): zizmor's verdict on every workflow card as three more status-badge sets owned by this projection — actionable findings (High/Medium, purple), advisory findings (Low/Informational, light purple), and NOT SCANNED (grey, the vocabulary already meaning we could not say) — each fed by a projection-mode search in this bundle; unparameterized on purpose, because badge searches take static inputs and the badge renders only on hosts present in the scene. Projection node upsert plus six search nodes; every prior id stable, batch id moved. v0.3.0 (tap#426): every finding row in a zizmor badge's info window links to the finding on /zizmor/finding — the detail searches return the finding's own id as finding_id and the three zizmor badge sets declare row_url_template over it. Search + projection node upserts; every id stable, batch id moved. v0.4.0 (George, 2026-09-10): the advisory (Low/Informational) badge is gone — one purple badge, actionable findings only; the table beneath still lists every severity. Its two searches leave the bundle; on a grid that already holds them they stay as unreferenced search nodes until an operator deletes them (a shipped bundle cannot express 'gone'). v0.5.0 (git-serious-double-tap#31): workflow and job clicks open github_core's workflow page by workflow_id, the key it takes since tap-plugin-github-core#101. Panel node upsert only. v0.6.0 (George, 2026-09-10): lock_nodes — the picture is a placed layout, not a sandbox; nothing drags once drawn (badges still open their info windows). Projection node upsert only. v0.7.0 (George, 2026-09-10): the github.com, unified-systems-com and repository boxes are containers, not destinations — their nav rules are gone, so a click on them does nothing; workflows, jobs and apps keep theirs. Panel node upsert only."
+        "name": "git-serious double-tap: tap machinery projection v0.8.0",
+        "description": "The tap-specific machinery picture (req-git-serious-double-tap-tap-projection): a double-tap-owned projection whose one elevation runs TWO layouts on the same canvas — git_serious's machinery layout (github_core's machinery.js, referenced by entity id, never copied) and then the tap lanes layout (this plugin's tap-machinery.js), which regroups the repository's workflows into lanes by what starts them (PR gate · publish · scheduled · fleet · reusable baseline), places them by the cardinal map ruled 2026-09-09 (gate centre, publish left, scheduled below, fleet and baseline at the bottom, sources right), and draws the workflow-call and workflow_run edges across lanes. One graph panel owns the projection and shares the generic repository page's three scene searches by id; the tap page mounts it with the fixed input repo=unified-systems-com/tap. Out-of-file endpoints: git_serious's layout and searches, so git_serious seeds first. v0.2.0 (git-serious-double-tap#34): zizmor's verdict on every workflow card as three more status-badge sets owned by this projection — actionable findings (High/Medium, purple), advisory findings (Low/Informational, light purple), and NOT SCANNED (grey, the vocabulary already meaning we could not say) — each fed by a projection-mode search in this bundle; unparameterized on purpose, because badge searches take static inputs and the badge renders only on hosts present in the scene. Projection node upsert plus six search nodes; every prior id stable, batch id moved. v0.3.0 (tap#426): every finding row in a zizmor badge's info window links to the finding on /zizmor/finding — the detail searches return the finding's own id as finding_id and the three zizmor badge sets declare row_url_template over it. Search + projection node upserts; every id stable, batch id moved. v0.4.0 (George, 2026-09-10): the advisory (Low/Informational) badge is gone — one purple badge, actionable findings only; the table beneath still lists every severity. Its two searches leave the bundle; on a grid that already holds them they stay as unreferenced search nodes until an operator deletes them (a shipped bundle cannot express 'gone'). v0.5.0 (git-serious-double-tap#31): workflow and job clicks open github_core's workflow page by workflow_id, the key it takes since tap-plugin-github-core#101. Panel node upsert only. v0.6.0 (George, 2026-09-10): lock_nodes — the picture is a placed layout, not a sandbox; nothing drags once drawn (badges still open their info windows). Projection node upsert only. v0.7.0 (George, 2026-09-10): the github.com, unified-systems-com and repository boxes are containers, not destinations — their nav rules are gone, so a click on them does nothing; workflows, jobs and apps keep theirs. Panel node upsert only. v0.8.0: the info-window links into the finding page carry workflow_id (the page seats the workflow's anatomy graph, zizmor-tap#33); the detail search returns it."
       },
       "nodes": [
         {
@@ -76,7 +76,7 @@
                     },
                     "info_window": {
                       "search_id": "01a08d5d-3b85-7069-ba14-b4934cf4106c",
-                      "row_url_template": "/zizmor/finding?finding_id={finding_id}"
+                      "row_url_template": "/zizmor/finding?finding_id={finding_id}&workflow_id={workflow_id}"
                     }
                   },
                   {
@@ -215,7 +215,7 @@
               "query": [
                 "MATCH (f:zizmor__finding)-[:FLAGS_WORKFLOW__zizmor]->(w:github_core__github_workflow)",
                 "WHERE f.data.severity IN [\"High\", \"Medium\"]",
-                "RETURN w.entity_id AS entity_id, f.data.summary AS name, f.data.audit_id AS audit, f.data.severity AS severity, f.data.location.job_key AS job, f.entity_id AS finding_id"
+                "RETURN w.entity_id AS entity_id, f.data.summary AS name, f.data.audit_id AS audit, f.data.severity AS severity, f.data.location.job_key AS job, f.entity_id AS finding_id, w.data.workflow_id AS workflow_id"
               ]
             },
             "input_schema": {
