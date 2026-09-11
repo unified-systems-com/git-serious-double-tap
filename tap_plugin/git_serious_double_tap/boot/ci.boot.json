@@ -49,9 +49,9 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
-          "rev": "v0.8.0"
+          "rev": "v0.10.0"
         },
-        "note": "Transitive: a dependency of git_serious. Pinned at v0.6.0, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5)."
+        "note": "Transitive: a dependency of git_serious. Pinned at v0.6.0, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5). Moved to v0.10.0 on 2026-09-11: settings into configuration (#110) and secrets nested in the machinery picture (#116), which this instance's lanes layout restates."
       },
       {
         "slug": "zizmor",
@@ -69,9 +69,9 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/git-serious-tap",
-          "rev": "e8af7bcc11ada7ddfc1a61e94e081ae6524c1952"
+          "rev": "575fcc468b0cd7fcba064559d297cd9630bd0074"
         },
-        "note": "Declared in depends_on. Pinned at 8e390633f5db3ccd2f17a646813a3285cc30cf5a, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5)."
+        "note": "Declared in depends_on. Pinned at 8e390633f5db3ccd2f17a646813a3285cc30cf5a, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5). Moved from e8af7bc to 575fcc4 on 2026-09-11: secrets pages, the BloodHound query pack, and the scene searches that carry actions_secret (git-serious-tap#78, #80, #82)."
       },
       {
         "slug": "git_serious_double_tap",
