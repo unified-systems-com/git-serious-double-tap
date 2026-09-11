@@ -77,6 +77,7 @@ const T = {
     app: "github_core__github_app",
     runner: "github_core__github_runner",
     issuer: "identity_core__oidc_issuer",
+    secret: "github_core__actions_secret",
     placeholder: "_machinery_placeholder",
     registry: "_tap_registry",
     chain: "_tap_chain",
@@ -98,6 +99,7 @@ const E = {
     definesJob: "DEFINES_JOB__github_core",
     hasEnvironment: "DECLARES_ENVIRONMENT__github_core",
     protects: "PROTECTS_REPOSITORY__github_core",
+    definesSecret: "DEFINES_SECRET__github_core",
 };
 const SYN = {
     hostsThirdParty: "_MACHINERY_HOSTS_THIRD_PARTY",
@@ -125,6 +127,7 @@ const BASE_SIZES = {
     [T.app]: {width: 180, height: 40},
     [T.runner]: {width: 180, height: 40},
     [T.issuer]: {width: 200, height: 40},
+    [T.secret]: {width: 150, height: 30},
     [T.placeholder]: {width: 190, height: 30},
     [T.registry]: {width: 190, height: 44},
     [T.chain]: {width: 200, height: 60},
@@ -193,7 +196,7 @@ export async function execute(context) {
     // Re-run the nesting with the lane level added. Same base numbers as machinery.js
     // (tap-plugin-github-core#91), repository → lane → workflow instead of repository → workflow.
     const chrome = applyStandardChrome(cy, {
-        leafTypes: [T.job, T.ref, T.ruleset, T.environment, T.app, T.runner, T.issuer, T.workflow],
+        leafTypes: [T.job, T.ref, T.ruleset, T.environment, T.app, T.runner, T.issuer, T.workflow, T.secret],
         leafMaxWidth: 170,
     });
     const labelInset = parentLabelInset(chrome);
@@ -214,6 +217,10 @@ export async function execute(context) {
             {name: "ruleset-protects-repository", gryphon: `(parent:${T.repository})<-[:${E.protects}]-(child:${T.ruleset})`},
             {name: "repository-has-placeholder", gryphon: `(parent:${T.repository})-[:${SYN.hasPlaceholder}]->(child:${T.placeholder})`},
             {name: "workflow-defines-job", gryphon: `(parent:${T.workflow})-[:${E.definesJob}]->(child:${T.job})`},
+            // Restated from machinery.js (github-core#116 / #91): credentials nest in their holder.
+            {name: "account-defines-secret", gryphon: `(parent:${T.account})-[:${E.definesSecret}]->(child:${T.secret})`},
+            {name: "repository-defines-secret", gryphon: `(parent:${T.repository})-[:${E.definesSecret}]->(child:${T.secret})`},
+            {name: "environment-defines-secret", gryphon: `(parent:${T.environment})-[:${E.definesSecret}]->(child:${T.secret})`},
         ],
         baseSizes: BASE_SIZES,
         padding: 14,
@@ -221,6 +228,7 @@ export async function execute(context) {
             [T.platform]: {top: 40 + labelInset, right: 40, bottom: 40, left: 40},
             [T.account]: {top: 24 + labelInset, right: 34, bottom: 34, left: 34},
             [T.repository]: {top: 18 + labelInset, right: 28, bottom: 28, left: 28},
+            [T.environment]: {top: 6 + labelInset, right: 10, bottom: 10, left: 10},
             [T.pipelines]: {top: 6, right: 6, bottom: 6, left: 6},
             [T.toprow]: {top: 6, right: 6, bottom: 6, left: 6},
             [T.chain]: {top: 4, right: 4, bottom: 4, left: 4},
@@ -238,7 +246,16 @@ export async function execute(context) {
             ],
         },
         innerLayouts: {
-            [T.account]: {name: "flow", aspect: 2.0, gap: 24, sort: "area-desc"},
+            // The account: its repositories, then a row of the credentials it defines — an
+            // organisation secret reads as "the account's, beneath the repositories it reaches".
+            [T.account]: {
+                name: "tiered-rows", rowGap: 20, itemGap: 18,
+                tiers: [
+                    {name: "repositories", entityTypes: [T.repository]},
+                    {name: "credentials", entityTypes: [T.secret]},
+                ],
+            },
+            [T.environment]: {name: "flow", aspect: 3.0, gap: 8},
             // The repository: sources | the pipelines block | outputs, the base's own columns.
             [T.repository]: ranked("order", {columnLayout: "stack"}),
             // The block: the top row, then the scheduled line, then fleet AND baseline on one
