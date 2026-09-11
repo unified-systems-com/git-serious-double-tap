@@ -29,9 +29,9 @@ tap_repository = "grift/tap-repository.grift.json"
 [[boot.records]]
 name = "git_serious_double_tap"
 description = "unified-systems-com instance of git-serious: the product's closure + the double-tap plugin, seeded in order, collector fired against the org, landing page pinned to /double-tap (web.landing_entity_id + web.landing_slug)."
-sha256 = "9d539192ee46c0ac7e91efe0e9e2a649bb0845d3ac7ef6138b2380a04ccff2e6"
+sha256 = "3188d499e566de48e64b2562f4ebb134fbef935948659159b73f15612ee4da3d"
 
 [[boot.records]]
 name = "ci"
 description = "RESERVED NAME (req-boot-bootstrap-ci-record): the stack this plugin's own tests run in — depends_on closure + self, offline, credential-free. The consumer flips self to editable."
-sha256 = "3a15ad88706d95f968a3484dc6cb416bb98ae455de46ebd59397ceeeac5b4dc8"
+sha256 = "ef4fec73063f36a3c68975095ee9e2d018c42623cd0d6dbad56de29beb711782"

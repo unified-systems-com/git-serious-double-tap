@@ -49,9 +49,9 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
-          "rev": "v0.8.0"
+          "rev": "v0.10.0"
         },
-        "note": "Transitive: a dependency of git_serious. Pinned at v0.6.0, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5)."
+        "note": "Transitive: a dependency of git_serious. Pinned at v0.6.0, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5). Moved to v0.10.0 on 2026-09-11: settings into configuration (#110) and secrets nested in the machinery picture (#116), which this instance's lanes layout restates."
       },
       {
         "slug": "zizmor",

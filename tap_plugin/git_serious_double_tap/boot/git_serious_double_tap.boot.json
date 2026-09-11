@@ -58,9 +58,9 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
-          "rev": "v0.8.0"
+          "rev": "v0.10.0"
         },
-        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary git_serious and zizmor both read. Pinned at v0.8.0: the release that ships the workflow-page bundle this record seeds and keys it on workflow_id (tap-plugin-github-core#102); git_serious declares `tap-plugin-github-core>=0.8.0,<0.9` from git-serious-tap#77 on. A pin below what git_serious declares cannot install at all (that was the v0.6.0 lesson, #28)."
+        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary git_serious and zizmor both read. Pinned at v0.8.0: the release that ships the workflow-page bundle this record seeds and keys it on workflow_id (tap-plugin-github-core#102); git_serious declares `tap-plugin-github-core>=0.8.0,<0.9` from git-serious-tap#77 on. A pin below what git_serious declares cannot install at all (that was the v0.6.0 lesson, #28). Moved to v0.10.0 on 2026-09-11: settings into configuration (#110) and secrets nested in the machinery picture (#116), which this instance's lanes layout restates."
       },
       {
         "slug": "zizmor",
