@@ -6,15 +6,15 @@
   "batches": [
     {
       "batch_entity": {
-        "entity_id": "01a08d6c-27d5-7621-b836-dd38453cba19",
+        "entity_id": "01a08ded-8650-76ff-a74e-bd76a7e4af8a",
         "entity_type": "batch",
-        "name": "git-serious double-tap: tap repository page v0.4.0",
+        "name": "git-serious double-tap: tap repository page v0.5.0",
         "dimensions": {}
       },
       "batch_node": {
         "source": "tap_plugin.git_serious_double_tap.grift.tap_repository",
-        "name": "git-serious double-tap: tap repository page v0.4.0",
-        "description": "The tap repository's own page: one page node and five USES_PANEL edges onto git-serious's shared panels, each edge pinning repo=unified-systems-com/tap as a fixed input (tap#359). No panel or search of its own (git-serious-double-tap#11 retired the v0.1.0 copies). v0.3.0 (git-serious-double-tap#32, demo-land 2026-09-10): a sixth row, `findings`, after the open pull requests — the zizmor findings on this repository's workflow files, as a standard table over a search THIS bundle owns (the instance hardcodes the composition; the product-level home for this surface is git-serious-tap#73). Every row opens the finding on /zizmor/finding. Page node upsert (layout) plus one search, one panel and two edges; every prior id is stable, only the batch id moved. v0.4.0 (tap#425): the findings panel declares row_url_template, so a ROW click opens the finding on /zizmor/finding — the consumer names its route; core JS names none. Panel node upsert only."
+        "name": "git-serious double-tap: tap repository page v0.5.0",
+        "description": "The tap repository's own page: one page node and five USES_PANEL edges onto git-serious's shared panels, each edge pinning repo=unified-systems-com/tap as a fixed input (tap#359). No panel or search of its own (git-serious-double-tap#11 retired the v0.1.0 copies). v0.3.0 (git-serious-double-tap#32, demo-land 2026-09-10): a sixth row, `findings`, after the open pull requests — the zizmor findings on this repository's workflow files, as a standard table over a search THIS bundle owns (the instance hardcodes the composition; the product-level home for this surface is git-serious-tap#73). Every row opens the finding on /zizmor/finding. Page node upsert (layout) plus one search, one panel and two edges; every prior id is stable, only the batch id moved. v0.4.0 (tap#425): the findings panel declares row_url_template, so a ROW click opens the finding on /zizmor/finding — the consumer names its route; core JS names none. Panel node upsert only. v0.5.0: links into the finding page carry workflow_id — the page seats the workflow's anatomy graph and reads it from the URL (zizmor-tap#33); the collector records location.workflow_id from zizmor-tap#34 on."
       },
       "nodes": [
         {
@@ -133,7 +133,7 @@
                   "header_tooltip": "zizmor's own name for the rule that fired. Click through for the finding in full.",
                   "formatter": "link",
                   "formatter_params": {
-                    "href_template": "/zizmor/finding?finding_id={data.entity_id}"
+                    "href_template": "/zizmor/finding?finding_id={data.entity_id}&workflow_id={data.location.workflow_id}"
                   }
                 },
                 {
@@ -206,7 +206,7 @@
                   "formatter": "datetime"
                 }
               ],
-              "row_url_template": "/zizmor/finding?finding_id={entity_id}"
+              "row_url_template": "/zizmor/finding?finding_id={entity_id}&workflow_id={data.location.workflow_id}"
             }
           }
         }
