@@ -50,7 +50,7 @@ loan, not a residence; its spec section names the graduation issue.
 | req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` is the demo strip alone; `/double-tap/status-wall` mounts git-serious's status wall and not-observed panels by edge |
 | req-git-serious-double-tap-page-tap | [The tap Page](#the-tap-page) | Implemented | `/double-tap/tap`: one page node mounting git-serious's shared repository panels by id, each edge pinning `repo=unified-systems-com/tap` as a fixed input (tap#359) — the instance's one scoped page, owning one panel of its own, the machinery panel (req-git-serious-double-tap-tap-projection) |
 | req-git-serious-double-tap-tap-projection | [The tap Projection](#the-tap-projection) | Implemented | A double-tap-owned projection whose one elevation runs github_core's machinery layout and then the tap lanes layout on the same canvas; the tap page's machinery panel owns it |
-| req-git-serious-double-tap-page-strip | [Demo Strip](#demo-strip) | Implemented | One card per repository that moved in the last 24 hours: its open PRs with the check results of each PR's current head; collection freshness said out loud; navigation to the four git-serious views |
+| req-git-serious-double-tap-page-strip | [Demo Strip](#demo-strip) | Implemented | Top Movers: one card per repository that moved in the selected window (all open · last week · last 24 hours; selector upper-right, default 24h): its open PRs with the check results of each PR's current head; collection freshness said out loud |
 | req-git-serious-double-tap-nongoals | [v0 Non-Goals](#v0-non-goals) | Implemented | What this plugin refuses to grow into |
 
 ### Instance-Only Scope
@@ -86,7 +86,7 @@ about right now — the cards").
 
 | Route | Nav weight | Content |
 | --- | :---: | --- |
-| `/double-tap` | 110 | The [demo strip](#demo-strip) and nothing else: the cards, the collection's freshness, four links. |
+| `/double-tap` | 110 | **Top Movers** (renamed 2026-09-14, #42; the URL is unchanged): the [demo strip](#demo-strip) and nothing else — the cards for the selected window, the collection's freshness, the window selector. |
 | `/double-tap/status-wall` | 111 | git-serious's status wall (every workflow's latest run) and the not-observed workflows, mounted by `USES_PANEL` edge — the drill-down the strip links to. |
 | `/double-tap/tap` | 112 | [The tap page](#the-tap-page): the repository that builds TAP, on the generic repository page's structure with hardcoded scope. |
 
@@ -109,6 +109,7 @@ git_serious's `landing.grift.json`; ids are stable across its re-publishes).
 | ACID | Title | Status | Description | Notes |
 | --- | --- | :---: | --- | --- |
 | req-git-serious-double-tap-page-home-1 | Routes Serve | Implemented | `GET /double-tap` renders the strip slot alone; `GET /double-tap/status-wall` renders the two git_serious slots; both 200 on a booted git_serious instance with this plugin seeded. | |
+| req-git-serious-double-tap-page-home-3 | Named Top Movers | Implemented | The page node and the strip panel node are named `Top Movers` (home bundle v0.4.0); the route stays `/double-tap`. | #42 |
 | req-git-serious-double-tap-page-home-2 | Composition Plus One | Implemented | The home bundle's nodes are the two pages and the strip panel; every other edge targets a git_serious-seeded panel, and the import reports no dangling edge when git_serious seeded first. | v0.1.0 read "only node is the page"; superseded by the incubator rule. |
 
 ### The tap Page
@@ -262,6 +263,15 @@ system already teaches — the board, then the order of the cards, then one card
    (*Fix 2 failing checks on #83* · *Look — checks not observable on #7* · *Wait — 3 checks still
    running on #7* · *Review — #344 green* · *nothing open — latest merge #55*), then the rows.
 
+**The window** (v0.6.0, George 2026-09-14, #42): the strip is *Top Movers* and the reader picks the
+window in the upper-right — *All open*, *Last week*, *Last 24 hours* — as `?window=all|7d|24h` on the
+page's query string, which the slot's auto-refresh URL already carries. The default is 24 hours, so
+the page reads as before until someone clicks. `7d` and `24h` are the same movement rule (opened,
+merged, head pushed, building now) over a wider span; `all` is *any open pull request*: a card per
+repository with one or more OPEN PRs, no time filter, and merged-only quiet cards drop out because
+nothing is open. An unknown value falls back to the default and says so on the strip — bad input is a
+state, never a blank.
+
 **The board** (v0.5.0, George 2026-09-09, second cut): the movers are placed, not listed. Row one is
 the platform, unified-systems-com/tap, alone and centred at half the width — the parent gets its own
 row. Row two, under a hairline and the heading *Products*, holds the products across the width
@@ -290,7 +300,8 @@ are written up in the double-tap workboard briefing (docs, 2026-09-09) and summa
 #### Implementation
 
 `tap_plugin/git_serious_double_tap/panels/demo_strip/__init__.py` — panel type
-`double-tap-demo-strip` (registered in `apps.py`), reads through `execute_gryphon_raw` over four
+`double-tap-demo-strip` (registered in `apps.py`), resolves the window from the request (`resolve_window`,
+`WINDOWS`), reads through `execute_gryphon_raw` over four
 declared queries (repositories, pull requests, the `PROPOSES_COMMIT` join, collection jobs) and
 folds them in pure functions (`build_cards`, `dedupe_checks`, `classify_check`, `_summarize`,
 `board_summary`, `collection_status`); template `templates/git_serious_double_tap/panels/demo_strip.html`; styles
@@ -310,6 +321,7 @@ record already orders. Data contract: github_core ≥ the release that ships `pu
 | req-git-serious-double-tap-page-strip-5 | Freshness Said | Implemented | never / fresh / stale / failed from the github_core collection jobs only; never-succeeded outranks failed. | `test_collection_line_four_states`, `test_collection_line_ignores_other_collectors` |
 | req-git-serious-double-tap-page-strip-7 | One Nudge Per Card | Implemented | Every card carries exactly one state, verb and headline by the precedence failed > unobservable > pending > green > quiet; the board's summary line counts cards by state in that order with zeros omitted. | `test_card_state_and_nudge_precedence`, `test_board_summary_counts_in_board_order_without_zeros` |
 | req-git-serious-double-tap-page-strip-8 | The Board | Implemented | Platform row; the declared products across their row; the plugins board ordered state-then-criticality; a support row; the note-to-self naming Issue# 21. | `test_board_places_platform_products_plugins_and_support` |
+| req-git-serious-double-tap-page-strip-9 | Three Windows | Implemented | `?window=24h` (default) and `7d` apply the movement rule over their span; `all` yields a card per repository with an open PR and none for merged-only; the selector marks the active window and keeps other query parameters; an unknown value renders the default with a note. | `test_last_week_window_widens_the_same_rule`, `test_all_window_is_every_open_pull_request_and_nothing_closed`, `test_resolve_window_default_selection_and_fallback` |
 | req-git-serious-double-tap-page-strip-6 | Live | Implemented | On the 8010 grid after a collection (2026-09-08): five cards, critical → high → unclassified, PR rows with passed counts and pending names, collection line fresh. | Observed by hand; a boot-and-test lane for this repo is #4. |
 
 ### Design Fundamentals
