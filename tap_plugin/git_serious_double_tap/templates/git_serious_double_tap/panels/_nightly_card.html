@@ -1,4 +1,5 @@
-{% comment %}One nightlies card — included per repository by nightlies.html (req-git-serious-double-tap-page-nightlies).{% endcomment %}
+{% load tap_time %}
+{% comment %}One nightlies card — included per repository by nightlies.html (req-git-serious-double-tap-page-nightlies). An included template loads its own libraries: the parent's `{% load %}` does not reach it (first live render, 2026-09-14: "Invalid filter: 'tap_localtime'").{% endcomment %}
         <article class="dts-card dts-card--state-{{ card.state }}" role="listitem" data-repo="{{ card.full_name }}" title="{{ card.headline }}">
           <header class="dts-card-head">
             <a class="dts-repo" href="{{ card.page_url }}" title="{{ card.full_name }} — open the repository view">{{ card.name }}</a>
@@ -15,7 +16,8 @@
                 {% else %}
                   <span class="dtn-workflow">{{ row.name }}</span>
                 {% endif %}
-                <span class="dtn-age" title="{% if row.ran_at %}Latest scheduled run started {{ row.ran_at|tap_localtime }}{% else %}No scheduled run observed{% endif %}">{% if row.ran_at %}{{ row.age }}{% else %}—{% endif %}</span>
+                {% comment %}tap_localtime emits markup (a <time> the viewer's zone rewrites), so it is content, never an attribute.{% endcomment %}
+                <span class="dtn-age">{% if row.ran_at %}{{ row.ran_at|tap_localtime }} · {{ row.age }}{% else %}<span title="No scheduled run observed">—</span>{% endif %}</span>
               </li>
             {% endfor %}
           </ul>

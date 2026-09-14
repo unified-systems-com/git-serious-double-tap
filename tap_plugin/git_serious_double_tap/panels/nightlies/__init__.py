@@ -170,9 +170,9 @@ class NightliesPanelType:
         try:
             env = _fetch(QUERIES)
         except Exception:  # noqa: BLE001 — the panel renders its failure, never a blank frame
-            logger.exception("[b71c] nightlies reads failed for panel %s", panel.entity_id)
+            logger.exception("[5c2a] nightlies reads failed for panel %s", panel.entity_id)
             return {
-                "board_error": "Nightlies reads failed — see the server log ([b71c]).",
+                "board_error": "Nightlies reads failed — see the server log ([5c2a]).",
                 "cards": [],
                 "summary": [],
                 "collection": None,
@@ -300,7 +300,7 @@ def build_cards(
         card = NightlyCard(
             entity_id=repo_id,
             full_name=full_name,
-            name=str(repo.get("name") or full_name.rsplit("/", 1)[-1]),
+            name=full_name.rsplit("/", 1)[-1] if full_name else str(repo.get("name") or ""),
             html_url=str(repo.get("html_url") or ""),
             page_url=_page_url(full_name),
             rows=rows,
