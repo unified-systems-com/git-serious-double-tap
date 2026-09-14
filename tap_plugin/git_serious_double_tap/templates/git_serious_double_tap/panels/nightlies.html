@@ -1,0 +1,39 @@
+{% load tap_time %}
+{% comment %}
+double-tap nightlies — req-git-serious-double-tap-page-nightlies. One card per repository that
+runs on a schedule; one row per scheduled workflow with its latest run. Text and glyphs carry the
+state (✕ failed · ? not observed · ◷ running · ⊘ other · ✓ green); colour is a second channel.
+No auto-refresh: a nightly changes once a day, and a second copy of the strip's refresh script is
+the graduation trigger for the card mechanism into tap_web, not a thing to duplicate here.
+{% endcomment %}
+<section class="dts dts--nightlies" aria-label="Nightlies — every scheduled workflow's latest run">
+  <header class="dts-head">
+    <h2 class="dts-title">Nightlies</h2>
+    {% if summary %}
+      <p class="dts-summary" aria-label="Nightlies summary">
+        <span class="dts-summary-total">{{ cards|length }} repositor{{ cards|length|pluralize:"y,ies" }}</span>
+        {% for item in summary %}<span class="dts-summary-item dts-summary-item--{{ item.state }}"><b>{{ item.count }}</b> {{ item.label }}</span>{% endfor %}
+      </p>
+    {% endif %}
+    {% if collection %}
+      <p class="dts-collection dts-collection--{{ collection.state }}" title="Coverage: every workflow run github_core collected for the organization. A nightly that ran after the last collection is not here yet — the window below is measured against the data's age, not only the clock.">
+        {% if collection.state == "fresh" %}●{% elif collection.state == "stale" %}◔{% elif collection.state == "failed" %}✕{% else %}○{% endif %}
+        {{ collection.text }}
+        {% if collection.last_success %}({{ collection.last_success|tap_localtime }}){% endif %}
+      </p>
+    {% endif %}
+  </header>
+
+  {% if board_error %}
+    <p class="dts-error">{{ board_error }}</p>
+  {% elif not cards %}
+    <p class="dts-empty">
+      {% if collection and collection.state == "never" %}Nothing to show until a collection succeeds.{% else %}No repository declares a scheduled workflow, and no scheduled run has been collected.{% endif %}
+    </p>
+  {% else %}
+    <div class="dts-strip dts-strip--nightlies" role="list">
+      {% for card in cards %}{% include "git_serious_double_tap/panels/_nightly_card.html" %}{% endfor %}
+    </div>
+    <p class="dts-note">A row reads <b>not observed</b> when no scheduled run of that workflow was collected in the last {{ window_hours }} hours — never green by default. A red row is a red run: open it, read the job's step summary, fix, and the next night's run turns it green.</p>
+  {% endif %}
+</section>

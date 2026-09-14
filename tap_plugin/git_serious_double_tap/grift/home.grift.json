@@ -8,13 +8,13 @@
       "batch_entity": {
         "entity_id": "01a081d1-f90f-76ff-b882-4919aff2d22d",
         "entity_type": "batch",
-        "name": "git-serious double-tap home v0.3.0",
+        "name": "git-serious double-tap home v0.6.0",
         "dimensions": {}
       },
       "batch_node": {
         "source": "tap_plugin.git_serious_double_tap.grift.home",
-        "name": "git-serious double-tap home v0.3.0",
-        "description": "v0.3.0 of the double-tap home: /double-tap is the demo strip alone — the plugin's own card panel (req-git-serious-double-tap-page-strip): the repositories that moved in the last 24 hours, their open PRs and the check results on each PR's current head, the collection's freshness, and four links. The status wall and its not-observed companion (git_serious panels, mounted by USES_PANEL edge) moved to their own page, /double-tap/status-wall. The gates panel left the landing; the gate view is one of the four links. git_serious must be seeded before this bundle (boot-profile population order)."
+        "name": "git-serious double-tap home v0.6.0",
+        "description": "v0.6.0 of the double-tap home: /double-tap is the demo strip and, under it, the nightlies board (req-git-serious-double-tap-page-nightlies: one card per repository that runs on a schedule, each scheduled workflow's latest run, red when it failed and not observed when nothing ran in the window — where a red nightly is read, tap#137/#440). v0.3.0 made the strip the landing alone — the plugin's own card panel (req-git-serious-double-tap-page-strip): the repositories that moved in the last 24 hours, their open PRs and the check results on each PR's current head, the collection's freshness, and four links. The status wall and its not-observed companion (git_serious panels, mounted by USES_PANEL edge) moved to their own page, /double-tap/status-wall. The gates panel left the landing; the gate view is one of the four links. git_serious must be seeded before this bundle (boot-profile population order)."
       },
       "nodes": [
         {
@@ -30,7 +30,7 @@
             "name": "double-tap",
             "slug": "/double-tap",
             "nav_weight": 110,
-            "description": "unified-systems-com through git-serious: the page the organization that builds TAP lives in to run its own CI/CD. v0.3.0, minimal by design: the demo strip and nothing else — which repositories moved in the last 24 hours, their open PRs, which checks pass or fail on each PR's current head, whether the collection is fresh, and links to the organization, machinery, gate and status-wall views (req-git-serious-double-tap-page-strip). The status wall lives on /double-tap/status-wall.",
+            "description": "unified-systems-com through git-serious: the page the organization that builds TAP lives in to run its own CI/CD. v0.6.0, minimal by design: the demo strip — which repositories moved in the last 24 hours, their open PRs, which checks pass or fail on each PR's current head, whether the collection is fresh, and links to the organization, machinery, gate and status-wall views (req-git-serious-double-tap-page-strip) — and under it the nightlies board: one card per repository that runs on a schedule, each scheduled workflow's latest run, red when it failed and not observed when nothing ran in the window (req-git-serious-double-tap-page-nightlies). The status wall lives on /double-tap/status-wall.",
             "layout": {
               "full_bleed": true,
               "columns": {
@@ -39,6 +39,10 @@
                   "rows": {
                     "row-1": {
                       "panel-id": "demo-strip",
+                      "height": "auto"
+                    },
+                    "row-2": {
+                      "panel-id": "nightlies",
                       "height": "auto"
                     }
                   }
@@ -63,6 +67,25 @@
             "view": "git_serious_double_tap/panels/demo_strip.html",
             "config": {
               "refresh_seconds": 60
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a0a153-17c3-77da-8890-ef2ff52aef4a",
+            "entity_type": "panel",
+            "name": "Nightlies",
+            "dimensions": {
+              "tap.graph": "web"
+            }
+          },
+          "node": {
+            "name": "Nightlies",
+            "slug": "double-tap-nightlies",
+            "description": "One card per repository that runs on a schedule; one row per scheduled workflow with its LATEST scheduled run — red when it failed, running, other (with the word), green — and NOT OBSERVED when no scheduled run was collected in the window (26 hours by default), never green by default. Where a red nightly is read (tap#137: the fuzz campaign reds its run; tap#440: the not-observed state). Cards worst-first. Links: repository → repository view, workflow → its latest run on GitHub. Built as double-tap code beside the strip (req-git-serious-double-tap-page-nightlies); the second card panel, and so the graduation trigger for the card mechanism into tap_web.",
+            "view": "git_serious_double_tap/panels/nightlies.html",
+            "config": {
+              "window_hours": 26
             }
           }
         },
@@ -118,6 +141,26 @@
                 "model": "page",
                 "spec": "page-panels",
                 "value": "demo-strip"
+              }
+            }
+          }
+        },
+        {
+          "entity": {
+            "entity_id": "01a0a153-17c3-77da-8890-ef30246ef097",
+            "entity_type": "edge",
+            "name": "Page USES_PANEL nightlies (double-tap)",
+            "dimensions": {}
+          },
+          "edge": {
+            "from_entity_id": "01a081d1-f90f-76ff-b882-491af67b9d4b",
+            "to_entity_id": "01a0a153-17c3-77da-8890-ef2ff52aef4a",
+            "edge_type": "USES_PANEL",
+            "properties": {
+              "hotlink": {
+                "model": "page",
+                "spec": "page-panels",
+                "value": "nightlies"
               }
             }
           }
