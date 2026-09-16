@@ -6,28 +6,28 @@
   "batches": [
     {
       "batch_entity": {
-        "entity_id": "01a081d1-f90f-76ff-b882-4919aff2d22d",
+        "entity_id": "01a0a129-7efa-74a8-8b15-6c7a3c9d5ec4",
         "entity_type": "batch",
-        "name": "git-serious double-tap home v0.3.0",
+        "name": "git-serious double-tap home v0.4.0",
         "dimensions": {}
       },
       "batch_node": {
         "source": "tap_plugin.git_serious_double_tap.grift.home",
-        "name": "git-serious double-tap home v0.3.0",
-        "description": "v0.3.0 of the double-tap home: /double-tap is the demo strip alone — the plugin's own card panel (req-git-serious-double-tap-page-strip): the repositories that moved in the last 24 hours, their open PRs and the check results on each PR's current head, the collection's freshness, and four links. The status wall and its not-observed companion (git_serious panels, mounted by USES_PANEL edge) moved to their own page, /double-tap/status-wall. The gates panel left the landing; the gate view is one of the four links. git_serious must be seeded before this bundle (boot-profile population order)."
+        "name": "git-serious double-tap home v0.4.0",
+        "description": "v0.4.0 (git-serious-double-tap#42): the landing is Top Movers — the page and its strip panel are renamed, and the strip takes a time window from the page's query string (?window=all|7d|24h; selector upper-right; default 24h; an unknown value falls back and says so). All = a card per repository with an open pull request, no time filter. Node ids unchanged; upserts. v0.3.0 of the double-tap home: /double-tap is the demo strip alone — the plugin's own card panel (req-git-serious-double-tap-page-strip): the repositories that moved in the last 24 hours, their open PRs and the check results on each PR's current head, the collection's freshness, and four links. The status wall and its not-observed companion (git_serious panels, mounted by USES_PANEL edge) moved to their own page, /double-tap/status-wall. The gates panel left the landing; the gate view is one of the four links. git_serious must be seeded before this bundle (boot-profile population order)."
       },
       "nodes": [
         {
           "entity": {
             "entity_id": "01a081d1-f90f-76ff-b882-491af67b9d4b",
             "entity_type": "page",
-            "name": "double-tap",
+            "name": "Top Movers",
             "dimensions": {
               "tap.graph": "web"
             }
           },
           "node": {
-            "name": "double-tap",
+            "name": "Top Movers",
             "slug": "/double-tap",
             "nav_weight": 110,
             "description": "unified-systems-com through git-serious: the page the organization that builds TAP lives in to run its own CI/CD. v0.3.0, minimal by design: the demo strip and nothing else — which repositories moved in the last 24 hours, their open PRs, which checks pass or fail on each PR's current head, whether the collection is fresh, and links to the organization, machinery, gate and status-wall views (req-git-serious-double-tap-page-strip). The status wall lives on /double-tap/status-wall.",
@@ -51,13 +51,13 @@
           "entity": {
             "entity_id": "01a08375-96e8-77ea-bf33-1d07f1ed54cc",
             "entity_type": "panel",
-            "name": "Moving in the last 24 hours",
+            "name": "Top Movers",
             "dimensions": {
               "tap.graph": "web"
             }
           },
           "node": {
-            "name": "Moving in the last 24 hours",
+            "name": "Top Movers",
             "slug": "double-tap-demo-strip",
             "description": "One card per repository that had a pull request opened, pushed, merged or building in the last 24 hours, ordered by the organization's criticality property then by most recent movement. Each open PR is one line: passed-check count, failed-check names, pending-check names — evaluated against the PR's current head, reruns deduplicated. Says when the collection last succeeded and when it is stale or failed. Links: repository → repository view, PR → GitHub, results → the check. Built as double-tap code first (req-git-serious-double-tap-page-strip); the repeatable card mechanism graduates to tap_web later.",
             "view": "git_serious_double_tap/panels/demo_strip.html",

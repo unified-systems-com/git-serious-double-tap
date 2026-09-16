@@ -1,6 +1,7 @@
 """The demo strip's folding rules, over fixture envelopes — no grid, no GitHub.
 
-Covers req-git-serious-double-tap-page-strip: selection by qualifying movement, criticality
+Covers req-git-serious-double-tap-page-strip: selection by qualifying movement, the three
+time windows (all open · last week · last 24 hours) and the selector's fallback, criticality
 order, per-head check results with rerun dedupe, the three check-observability states, and the
 collection line's four states.
 """
@@ -11,11 +12,14 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from tap_plugin.git_serious_double_tap.panels.demo_strip import (
+    DEFAULT_WINDOW,
     UNCLASSIFIED,
+    WINDOWS,
     build_cards,
     classify_check,
     collection_status,
     dedupe_checks,
+    resolve_window,
 )
 
 NOW = datetime(2026, 9, 9, 0, 0, tzinfo=UTC)
@@ -171,6 +175,73 @@ def test_running_check_counts_as_movement_now() -> None:
     cards = build_cards(_env(repos, prs), now=NOW)
     assert [c.full_name for c in cards] == ["o/building"]
     assert [r.name for r in cards[0].rows[0].pending] == ["gate"]
+
+
+def test_last_week_window_widens_the_same_rule() -> None:
+    """A PR opened three days ago moves in the 7d window and not in the 24h one."""
+    repos = [_repo("o/threedays"), _repo("o/today")]
+    prs = [
+        _pr("o/threedays", 1, created=timedelta(days=3)),
+        _pr("o/today", 2, created=timedelta(hours=2)),
+    ]
+    day = [c.full_name for c in build_cards(_env(repos, prs), now=NOW)]
+    week = [
+        c.full_name
+        for c in build_cards(_env(repos, prs), now=NOW, window=WINDOWS["7d"][1])
+    ]
+    assert day == ["o/today"]
+    assert set(week) == {"o/threedays", "o/today"}
+
+
+def test_all_window_is_every_open_pull_request_and_nothing_closed() -> None:
+    """All: a card per repository with an open PR regardless of age; merged-only repos drop out."""
+    repos = [_repo("o/ancient"), _repo("o/mergedonly"), _repo("o/closedonly")]
+    prs = [
+        _pr("o/ancient", 1, created=timedelta(days=400)),
+        _pr(
+            "o/mergedonly",
+            2,
+            state="MERGED",
+            created=timedelta(days=2),
+            merged_at=_iso(timedelta(hours=1)),
+        ),
+        _pr("o/closedonly", 3, state="CLOSED", created=timedelta(hours=1)),
+    ]
+    cards = build_cards(_env(repos, prs), now=NOW, window=None)
+    assert [c.full_name for c in cards] == ["o/ancient"]
+    assert [r.number for r in cards[0].rows] == [1]
+    # the same repos in the 24h window: the merge and the fresh (closed) opening both count as
+    # movement under the existing rule; the 400-day-old open PR does not
+    day = {c.full_name for c in build_cards(_env(repos, prs), now=NOW)}
+    assert day == {"o/mergedonly", "o/closedonly"}
+
+
+class _Params(dict):
+    """A QueryDict stand-in: ``get``, ``copy`` and ``urlencode``."""
+
+    def copy(self) -> "_Params":
+        return _Params(self)
+
+    def urlencode(self) -> str:
+        return "&".join(f"{k}={v}" for k, v in sorted(self.items()))
+
+
+def test_resolve_window_default_selection_and_fallback() -> None:
+    default = resolve_window(_Params())
+    assert default["key"] == DEFAULT_WINDOW and default["note"] == ""
+    assert [o["key"] for o in default["options"]] == ["all", "7d", "24h"]
+    assert [o["active"] for o in default["options"]] == [False, False, True]
+
+    week = resolve_window(_Params(window="7d", repo="o/r"))
+    assert week["key"] == "7d" and week["span"] == timedelta(days=7)
+    assert week["options"][0]["href"] == "?repo=o/r&window=all"  # other params kept
+
+    bogus = resolve_window(_Params(window="yesterday"))
+    assert bogus["key"] == DEFAULT_WINDOW
+    assert "yesterday" in bogus["note"] and "last 24 hours" in bogus["note"]
+
+    everything = resolve_window(_Params(window="all"))
+    assert everything["span"] is None and everything["label"] == "All open"
 
 
 def test_merged_only_repository_shows_latest_merge_and_no_rows() -> None:
