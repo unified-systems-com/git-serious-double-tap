@@ -47,10 +47,11 @@ loan, not a residence; its spec section names the graduation issue.
 | RID | Name | Status | Notes |
 | --- | --- | :---: | --- |
 | req-git-serious-double-tap-scope | [Instance-Only Scope](#instance-only-scope) | Implemented | Manifest + GRIFT only; install dep on git_serious; no models, edges, collectors or panel types |
-| req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` is the demo strip alone; `/double-tap/status-wall` mounts git-serious's status wall and not-observed panels by edge |
+| req-git-serious-double-tap-page-home | [Home Page](#home-page) | Implemented | `/double-tap` is the demo strip and, under it, the nightlies board; `/double-tap/status-wall` mounts git-serious's status wall and not-observed panels by edge |
 | req-git-serious-double-tap-page-tap | [The tap Page](#the-tap-page) | Implemented | `/double-tap/tap`: one page node mounting git-serious's shared repository panels by id, each edge pinning `repo=unified-systems-com/tap` as a fixed input (tap#359) — the instance's one scoped page, owning one panel of its own, the machinery panel (req-git-serious-double-tap-tap-projection) |
 | req-git-serious-double-tap-tap-projection | [The tap Projection](#the-tap-projection) | Implemented | A double-tap-owned projection whose one elevation runs github_core's machinery layout and then the tap lanes layout on the same canvas; the tap page's machinery panel owns it |
 | req-git-serious-double-tap-page-strip | [Demo Strip](#demo-strip) | Implemented | Top Movers: one card per repository that moved in the selected window (all open · last week · last 24 hours; selector upper-right, default 24h): its open PRs with the check results of each PR's current head; collection freshness said out loud |
+| req-git-serious-double-tap-page-nightlies | [Nightlies](#nightlies) | In Development | One card per repository that runs on a schedule; each scheduled workflow's LATEST run — red when it failed, and NOT OBSERVED when nothing ran in the window. Where a red nightly is read (operator ruling 2026-09-14: the landing page, not an inbox) |
 | req-git-serious-double-tap-nongoals | [v0 Non-Goals](#v0-non-goals) | Implemented | What this plugin refuses to grow into |
 
 ### Instance-Only Scope
@@ -86,7 +87,7 @@ about right now — the cards").
 
 | Route | Nav weight | Content |
 | --- | :---: | --- |
-| `/double-tap` | 110 | **Top Movers** (renamed 2026-09-14, #42; the URL is unchanged): the [demo strip](#demo-strip) and nothing else — the cards for the selected window, the collection's freshness, the window selector. |
+| `/double-tap` | 110 | **Top Movers** (renamed 2026-09-14, #42; the URL is unchanged): the [demo strip](#demo-strip) — the cards for the selected window, the collection's freshness, the window selector — and under it the [nightlies board](#nightlies) (v0.5.0): every scheduled workflow's latest run, worst first. |
 | `/double-tap/status-wall` | 111 | git-serious's status wall (every workflow's latest run) and the not-observed workflows, mounted by `USES_PANEL` edge — the drill-down the strip links to. |
 | `/double-tap/tap` | 112 | [The tap page](#the-tap-page): the repository that builds TAP, on the generic repository page's structure with hardcoded scope. |
 
@@ -108,9 +109,9 @@ git_serious's `landing.grift.json`; ids are stable across its re-publishes).
 
 | ACID | Title | Status | Description | Notes |
 | --- | --- | :---: | --- | --- |
-| req-git-serious-double-tap-page-home-1 | Routes Serve | Implemented | `GET /double-tap` renders the strip slot alone; `GET /double-tap/status-wall` renders the two git_serious slots; both 200 on a booted git_serious instance with this plugin seeded. | |
+| req-git-serious-double-tap-page-home-1 | Routes Serve | Implemented | `GET /double-tap` renders the strip slot and, under it, the nightlies slot (v0.5.0); `GET /double-tap/status-wall` renders the two git_serious slots; both 200 on a booted git_serious instance with this plugin seeded. | |
 | req-git-serious-double-tap-page-home-3 | Named Top Movers | Implemented | The page node and the strip panel node are named `Top Movers` (home bundle v0.4.0); the route stays `/double-tap`. | #42 |
-| req-git-serious-double-tap-page-home-2 | Composition Plus One | Implemented | The home bundle's nodes are the two pages and the strip panel; every other edge targets a git_serious-seeded panel, and the import reports no dangling edge when git_serious seeded first. | v0.1.0 read "only node is the page"; superseded by the incubator rule. |
+| req-git-serious-double-tap-page-home-2 | Composition Plus One | Implemented | The home bundle's nodes are the two pages and the two double-tap panels (the strip, the nightlies board); every other edge targets a git_serious-seeded panel, and the import reports no dangling edge when git_serious seeded first. | v0.1.0 read "only node is the page"; superseded by the incubator rule. |
 
 ### The tap Page
 ----
@@ -263,7 +264,7 @@ system already teaches — the board, then the order of the cards, then one card
    (*Fix 2 failing checks on #83* · *Look — checks not observable on #7* · *Wait — 3 checks still
    running on #7* · *Review — #344 green* · *nothing open — latest merge #55*), then the rows.
 
-**The window** (v0.6.0, George 2026-09-14, #42): the strip is *Top Movers* and the reader picks the
+**The window** (v0.4.0, George 2026-09-14, #42): the strip is *Top Movers* and the reader picks the
 window in the upper-right — *All open*, *Last week*, *Last 24 hours* — as `?window=all|7d|24h` on the
 page's query string, which the slot's auto-refresh URL already carries. The default is 24 hours, so
 the page reads as before until someone clicks. `7d` and `24h` are the same movement rule (opened,
@@ -323,6 +324,71 @@ record already orders. Data contract: github_core ≥ the release that ships `pu
 | req-git-serious-double-tap-page-strip-8 | The Board | Implemented | Platform row; the declared products across their row; the plugins board ordered state-then-criticality; a support row; the note-to-self naming Issue# 21. | `test_board_places_platform_products_plugins_and_support` |
 | req-git-serious-double-tap-page-strip-9 | Three Windows | Implemented | `?window=24h` (default) and `7d` apply the movement rule over their span; `all` yields a card per repository with an open PR and none for merged-only; the selector marks the active window and keeps other query parameters; an unknown value renders the default with a note. | `test_last_week_window_widens_the_same_rule`, `test_all_window_is_every_open_pull_request_and_nothing_closed`, `test_resolve_window_default_selection_and_fallback` |
 | req-git-serious-double-tap-page-strip-6 | Live | Implemented | On the 8010 grid after a collection (2026-09-08): five cards, critical → high → unclassified, PR rows with passed counts and pending names, collection line fresh. | Observed by hand; a boot-and-test lane for this repo is #4. |
+
+### Nightlies
+----
+RID: `req-git-serious-double-tap-page-nightlies`
+
+Status: `In Development`
+
+Issues: unified-systems-com/tap#137 (the nightly fuzz campaign reds its run — this is where the
+red is read), unified-systems-com/tap#440 (the not-observed state: a nightly that never fired must
+not look green). Ruled 2026-09-14 by the operator after an issue-filing reporter was built and
+withdrawn: *"that's our nerve center and I'd rather work it in there than a new page I won't look
+at."* The second card panel — and so the graduation trigger the strip's requirement named for
+the card mechanism into tap_web (filed with this panel's first live sighting, not before).
+
+**What it answers.** Did every nightly run, and did it pass? github_core already collects every
+workflow run in the organization (`github_actions_run`: event, conclusion, start time) and every
+workflow's declared triggers, so the board is a fold over data on the grid: one card per repository
+that declares a scheduled workflow or has run one, one row per such workflow, each row that
+workflow's **latest scheduled run**.
+
+**Five row states, worst first** — the summary line, the card order and the row order all follow it:
+
+| State | Reads | When |
+| --- | --- | --- |
+| `failed` | ✕ red | latest scheduled run in the window concluded `failure` / `timed_out` / `action_required` / `startup_failure` |
+| `not_observed` | ? not observed | no scheduled run in the window — declared but never run, or last run older than the window; the last verdict is said in the detail, never promoted |
+| `pending` | ◷ running | latest run is queued or in progress |
+| `other` | ⊘ other | any other conclusion (`cancelled`, `skipped`, …), shown WITH its word |
+| `green` | ✓ green | latest run in the window concluded `success` |
+
+A card's state is its worst row. The window is 26 hours (a nightly is due once a day; GitHub delays
+and drops on-the-hour crons), configurable per instance. Freshness is said on the board exactly as
+the strip says it — the collection line — because the window is measured against the data's age
+as well as the clock: a nightly that ran after the last collection is not here yet, and the board
+says so rather than showing yesterday's green as today's.
+
+**Why not an inbox.** Prior art (2026-09-14): failure e-mails to a workflow's actor, dashboards
+(TestGrid, toolstate, waterfalls), chat alerts, and issue-on-failure bots. TAP is a dashboard-shaped
+product that already collects the runs; the board is that family, with zero new mechanism. The
+honest cost, named: latency is the collector's cadence, not the run's — the issue route had none.
+
+#### Implementation
+
+`tap_plugin/git_serious_double_tap/panels/nightlies/__init__.py` — panel type `double-tap-nightlies`
+(registered in `apps.py`), reads through `execute_gryphon_raw` over three declared queries (scheduled
+runs with their `EXECUTES_WORKFLOW` workflow; repositories with their `DEFINES_WORKFLOW` workflows,
+whose `configuration.triggers` carries the declared `schedule`; collection jobs) and folds them in
+pure functions (`build_cards`, `classify_run`, `board_summary`); reuses the strip's `collection_status`,
+`_age`, repository-page routing and `_fetch`. Template `templates/git_serious_double_tap/panels/nightlies.html`
++ `_nightly_card.html`; styles ride `demo_strip.css` plus `nightlies.css` (the nightly states only).
+Instance: the `Nightlies` panel node (`01a0a153-17c3-77da-8890-ef2ff52aef4a`, slug `double-tap-nightlies`,
+`config.window_hours: 26`) mounted at `/double-tap` row-2 by `USES_PANEL`
+(`01a0a153-17c3-77da-8890-ef30246ef097`), in `home.grift.json` v0.5.0. No auto-refresh script: a
+nightly changes once a day, and a second copy of the strip's script is the graduation trigger, not
+a thing to duplicate. No github_core Python is imported — `depends_on` stays empty.
+
+#### Acceptance Criteria
+
+| ACID | Title | Status | Description | Notes |
+| --- | --- | :---: | --- | --- |
+| req-git-serious-double-tap-page-nightlies-1 | Scheduled Only | Implemented | A workflow is a row when it declares `schedule` or has a scheduled run; other workflows are not; a workflow whose repository is not on the grid is not a row. | `test_only_scheduled_workflows_are_on_the_board`, `test_a_workflow_with_scheduled_runs_but_no_declared_trigger_is_still_on_the_board`, `test_a_workflow_whose_repository_is_not_on_the_grid_is_not_a_row` |
+| req-git-serious-double-tap-page-nightlies-2 | Latest Run, Five States | Implemented | The newest scheduled run by start time decides the row; failed / running / other-with-word / green from its status and conclusion; unknown words are kept, never dropped. | `test_latest_scheduled_run_wins`, `test_running_and_other_states`, `test_classify_run_five_states_and_unknown_words_kept` |
+| req-git-serious-double-tap-page-nightlies-3 | Not Observed Never Green | Implemented | A declared schedule with no run, or a run older than the window, reads not observed; the old run's verdict is said in the detail and its link kept; the window is configurable. | `test_declared_schedule_with_no_run_is_not_observed_never_green`, `test_a_run_older_than_the_window_is_not_observed_and_says_what_was_last_seen`, `test_window_is_configurable` |
+| req-git-serious-double-tap-page-nightlies-4 | Worst First | Implemented | Card state is the worst row; cards order worst-first then name; rows the same; the summary counts workflows by state in that order, zeros omitted; card links go to the repository view (tap's override kept), rows to the latest run. | `test_card_state_is_the_worst_row_and_cards_order_worst_first_then_name`, `test_card_links_to_the_repository_page_with_the_tap_override` |
+| req-git-serious-double-tap-page-nightlies-5 | Live | Implemented | Seen on a spawned stack from this branch's boot pointer after one real collection (2026-09-14, 215 runs / 70 scheduled): 17 cards, 6 not-observed rows, the collection line present, zero console errors. The not-observed rows were tap's six nightlies — the collector's `initial_run_limit` (10 per repository) did not reach them on a fresh instance, the caveat named above, observed. No red row that night: the grid's one failed scheduled run had been superseded by a success on the same workflow, which is the correct reading. | Positive control held: a nightly with no run in the window shows `?`, never `✓`. The first render was blank — the included card template lacked its own `{% load tap_time %}` — a class the fold tests cannot see; the template now loads it. Red-row rendering is pinned by the fold tests and the CSS; its first live sighting is the next failed nightly. |
 
 ### Design Fundamentals
 ----

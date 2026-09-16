@@ -1,0 +1,24 @@
+{% load tap_time %}
+{% comment %}One nightlies card — included per repository by nightlies.html (req-git-serious-double-tap-page-nightlies). An included template loads its own libraries: the parent's `{% load %}` does not reach it (first live render, 2026-09-14: "Invalid filter: 'tap_localtime'").{% endcomment %}
+        <article class="dts-card dts-card--state-{{ card.state }}" role="listitem" data-repo="{{ card.full_name }}" title="{{ card.headline }}">
+          <header class="dts-card-head">
+            <a class="dts-repo" href="{{ card.page_url }}" title="{{ card.full_name }} — open the repository view">{{ card.name }}</a>
+            <span class="dtn-count" title="Scheduled workflows on this repository">{{ card.rows|length }} nightl{{ card.rows|length|pluralize:"y,ies" }}</span>
+          </header>
+          <ul class="dts-rows">
+            {% for row in card.rows %}
+              <li class="dts-row dtn-row dtn-row--{{ row.state }}">
+                <span class="dtn-state dts-res dts-res--{{ row.state }}" title="{{ row.label }}{% if row.detail %} — {{ row.detail }}{% endif %}">{{ row.glyph }} {{ row.label }}</span>
+                {% if row.run_url %}
+                  <a class="dtn-workflow" href="{{ row.run_url }}" target="_blank" rel="noopener" title="Open the latest scheduled run of {{ row.name }} on GitHub{% if row.head_branch %} · {{ row.head_branch }}{% endif %}">{{ row.name }}</a>
+                {% elif row.workflow_url %}
+                  <a class="dtn-workflow" href="{{ row.workflow_url }}" target="_blank" rel="noopener" title="Open the workflow {{ row.name }} on GitHub — no scheduled run has been collected">{{ row.name }}</a>
+                {% else %}
+                  <span class="dtn-workflow">{{ row.name }}</span>
+                {% endif %}
+                {% comment %}tap_localtime emits markup (a <time> the viewer's zone rewrites), so it is content, never an attribute.{% endcomment %}
+                <span class="dtn-age">{% if row.ran_at %}{{ row.ran_at|tap_localtime }} · {{ row.age }}{% else %}<span title="No scheduled run observed">—</span>{% endif %}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </article>

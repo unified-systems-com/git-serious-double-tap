@@ -1,0 +1,21 @@
+/* double-tap nightlies (req-git-serious-double-tap-page-nightlies) — rides the strip's card
+   system (demo_strip.css: .dts, .dts-card, .dts-rows, .dts-res) and adds only what a nightly
+   row needs: the not-observed and other states, a state word at the head of the row, the age at
+   its tail. Colour is spent on state only, and every state also carries a glyph and a word. */
+.dts--nightlies .dts-strip--nightlies { grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr)); }
+.dts-card--state-not_observed { border-left-color: var(--dts-look); }
+.dts-card--state-other { border-left-color: var(--dts-muted); }
+.dts-summary-item--not_observed { color: var(--dts-look); }
+.dts-summary-item--other { color: var(--dts-muted); }
+.dtn-count { font-size: 0.72rem; color: var(--dts-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dtn-row { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) auto; gap: 0 0.6rem; align-items: baseline; }
+.dtn-state { font-size: 0.8rem; white-space: nowrap; }
+.dts-res--not_observed { color: var(--dts-look); }
+.dts-res--failed { color: var(--dts-fail); font-weight: 600; }
+.dts-res--pending { color: var(--dts-pend); }
+.dts-res--other { color: var(--dts-muted); }
+.dts-res--green { color: var(--dts-good); }
+.dtn-workflow { color: var(--dts-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dtn-row--failed .dtn-workflow { font-weight: 600; }
+.dtn-age { font-size: 0.78rem; color: var(--dts-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dts-note { margin: 0.9rem 0 0; font-size: 0.78rem; color: var(--dts-muted); max-width: 70rem; }
