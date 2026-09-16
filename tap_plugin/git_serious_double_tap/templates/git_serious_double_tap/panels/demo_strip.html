@@ -3,9 +3,13 @@
 double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbols carry the state
 (✓ passed · ✕ failed · ◷ pending · ⊘ other); colour is a second channel, never the only one.
 {% endcomment %}
-<section class="dts" aria-label="Repositories moving in the last {{ window_hours }} hours"{% if refresh_seconds %} data-dts-refresh="{{ refresh_seconds }}"{% endif %}>
+<section class="dts" aria-label="Top Movers — {{ window.label|lower }}"{% if refresh_seconds %} data-dts-refresh="{{ refresh_seconds }}"{% endif %}>
   <header class="dts-head">
-    <h2 class="dts-title">Moving in the last {{ window_hours }} hours</h2>
+    <h2 class="dts-title">Top Movers <span class="dts-window-label">· {{ window.label|lower }}</span></h2>
+    <nav class="dts-window" aria-label="Time window">
+      {% for opt in window.options %}<a class="dts-window-opt{% if opt.active %} is-active{% endif %}" href="{{ opt.href }}"{% if opt.active %} aria-current="true"{% endif %}>{{ opt.label }}</a>{% endfor %}
+    </nav>
+    {% if window.note %}<p class="dts-window-note">{{ window.note }}</p>{% endif %}
     {% if summary %}
       <p class="dts-summary" aria-label="Board summary">
         <span class="dts-summary-total">{{ cards|length }} repositor{{ cards|length|pluralize:"y,ies" }}</span>
@@ -28,7 +32,7 @@ double-tap demo strip — req-git-serious-double-tap-page-strip. Text and symbol
     <p class="dts-error">{{ strip_error }}</p>
   {% elif not cards %}
     <p class="dts-empty">
-      {% if collection and collection.state == "never" %}Nothing to show until a collection succeeds.{% else %}No repository had a pull request opened, pushed, merged or building in the last {{ window_hours }} hours.{% endif %}
+      {% if collection and collection.state == "never" %}Nothing to show until a collection succeeds.{% elif window.span is None %}No repository has an open pull request.{% else %}No repository had a pull request opened, pushed, merged or building in the {{ window.label|lower }}.{% endif %}
     </p>
   {% else %}
     <div class="dts-board">

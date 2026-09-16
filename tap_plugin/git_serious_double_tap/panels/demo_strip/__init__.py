@@ -1,4 +1,5 @@
-"""double-tap-demo-strip — one card per repository that moved in the last 24 hours, listing its open
+"""double-tap-demo-strip — Top Movers: one card per repository that moved in the selected window
+(all open · last week · last 24 hours), listing its open
 pull requests with the check results of each PR's CURRENT head.
 
 Spec: specs/spec-git-serious-double-tap-v0.md (req-git-serious-double-tap-page-strip).
@@ -39,8 +40,17 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-#: The fixed selection window (George, 2026-09-08: strip only, 24 hours, no selector yet).
-WINDOW = timedelta(hours=24)
+#: The selectable windows (George, 2026-09-14: "All — any open PRs, last week, last day / 24 hrs";
+#: selector upper-right, page renamed Top Movers). Key → (label, span). A span of ``None`` is the
+#: *All* window: a card per repository with at least one OPEN pull request, no time filter.
+WINDOWS: dict[str, tuple[str, timedelta | None]] = {
+    "all": ("All open", None),
+    "7d": ("Last week", timedelta(days=7)),
+    "24h": ("Last 24 hours", timedelta(hours=24)),
+}
+DEFAULT_WINDOW = "24h"
+#: Kept for callers that predate the selector: the default span.
+WINDOW = WINDOWS[DEFAULT_WINDOW][1]
 
 #: A collection older than this is called stale on the strip. Placeholder until the collector's
 #: cadence is declared somewhere the panel can read it (the three-minute cadence is a separate
@@ -236,6 +246,7 @@ class DemoStripPanelType:
         config = dict(cls.config_defaults)
         config.update(panel.config or {})
         refresh_seconds = _positive_int(config.get("refresh_seconds"))
+        window = resolve_window(request.GET)
         try:
             env = _fetch(QUERIES)
         except (
@@ -248,10 +259,10 @@ class DemoStripPanelType:
                 "strip_error": "Strip reads failed — see the server log ([6aa9]).",
                 "cards": [],
                 "collection": None,
-                "window_hours": int(WINDOW.total_seconds() // 3600),
+                "window": window,
                 "refresh_seconds": refresh_seconds,
             }
-        cards = build_cards(env, now=now)
+        cards = build_cards(env, now=now, window=window["span"])
         collection = collection_status(env.get("collection_jobs", {}), now=now)
         return {
             "strip_error": None,
@@ -261,9 +272,39 @@ class DemoStripPanelType:
             "board_issue_url": BOARD_ISSUE_URL,
             "summary": board_summary(cards),
             "collection": collection,
-            "window_hours": int(WINDOW.total_seconds() // 3600),
+            "window": window,
             "refresh_seconds": refresh_seconds,
         }
+
+
+def resolve_window(params: Any) -> dict[str, Any]:
+    """The selected window from the page's query string (``?window=all|7d|24h``).
+
+    Returns ``key``, ``label``, ``span`` (``None`` for *All*), the selector ``options`` (each with an
+    ``href`` that keeps every other query parameter), and ``note`` — set only when the requested value
+    was unknown, so the fallback to the default is said on the strip rather than silently applied
+    (bad input is a state, never a blank).
+    """
+    requested = ""
+    try:
+        requested = str(params.get("window") or "")
+    except AttributeError:
+        requested = ""
+    key = requested if requested in WINDOWS else DEFAULT_WINDOW
+    note = ""
+    if requested and requested not in WINDOWS:
+        note = f"Unknown window “{requested[:40]}”; showing {WINDOWS[DEFAULT_WINDOW][0].lower()}."
+    options = []
+    for opt_key, (label, _span) in WINDOWS.items():
+        try:
+            query = params.copy()
+            query["window"] = opt_key
+            href = "?" + query.urlencode()
+        except AttributeError:
+            href = f"?window={opt_key}"
+        options.append({"key": opt_key, "label": label, "href": href, "active": opt_key == key})
+    label, span = WINDOWS[key]
+    return {"key": key, "label": label, "span": span, "options": options, "note": note}
 
 
 def _positive_int(value: Any) -> int:
@@ -382,10 +423,17 @@ def _pull_row(pr: dict[str, Any]) -> PullRow:
 
 
 def _qualifying_moments(
-    pr: dict[str, Any], head_committed: datetime | None, since: datetime
+    pr: dict[str, Any],
+    head_committed: datetime | None,
+    *,
+    now: datetime,
+    since: datetime | None,
 ) -> list[datetime]:
     """The moments that count as movement: opened, merged, head pushed (when observed). A check
     still queued or running counts as movement NOW. GitHub's ``updated_at`` never counts.
+
+    ``since`` is ``None`` for the *All* window: every OPEN pull request qualifies on its own history
+    (an open PR with no observed timestamp counts as moving now), and nothing closed does.
     """
     moments = [
         m
@@ -396,22 +444,32 @@ def _qualifying_moments(
         )
         if m
     ]
-    if str(pr.get("state") or "") == "OPEN":
+    is_open = str(pr.get("state") or "") == "OPEN"
+    if is_open:
         entries = pr.get("checks") or []
         if isinstance(entries, list) and any(
             classify_check(e).bucket == "pending"
             for e in entries
             if isinstance(e, dict)
         ):
-            moments.append(
-                since + WINDOW
-            )  # "now": running work is movement by definition
+            moments.append(now)  # running work is movement by definition
+    if since is None:
+        return (moments or [now]) if is_open else []
     return [m for m in moments if m >= since]
 
 
-def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
-    """Select the repositories that moved in the window and fold their PRs into cards."""
-    since = now - WINDOW
+def build_cards(
+    env: dict[str, dict[str, Any]],
+    *,
+    now: datetime,
+    window: timedelta | None = WINDOW,
+) -> list[Card]:
+    """Select the repositories that moved in the window and fold their PRs into cards.
+
+    ``window`` is the span behind ``now``; ``None`` is the *All* window (every open PR, no time
+    filter, and merged-only repositories are not cards because nothing is open).
+    """
+    since = None if window is None else now - window
     repos_by_name: dict[str, dict[str, Any]] = {}
     for node in env.get("repositories", {}).get("nodes", []):
         data = _data(node)
@@ -440,7 +498,7 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
     for node in env.get("pull_requests", {}).get("nodes", []):
         pr = _data(node)
         moments = _qualifying_moments(
-            pr, head_dates.get(str(node.get("entity_id"))), since
+            pr, head_dates.get(str(node.get("entity_id"))), now=now, since=since
         )
         per_repo[str(pr.get("full_name") or "")].append((pr, moments))
 
@@ -459,7 +517,8 @@ def build_cards(env: dict[str, dict[str, Any]], *, now: datetime) -> list[Card]:
         merged = [
             pr
             for pr, _ in items
-            if pr.get("state") == "MERGED"
+            if since is not None
+            and pr.get("state") == "MERGED"
             and (_parse_ts(pr.get("merged_at")) or since) >= since
         ]
         latest_merge = max((int(pr.get("number") or 0) for pr in merged), default=None)

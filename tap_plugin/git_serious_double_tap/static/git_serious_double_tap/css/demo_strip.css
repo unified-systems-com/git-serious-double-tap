@@ -1,4 +1,4 @@
-/* double-tap workboard (req-git-serious-double-tap-page-strip) — v0.4.0.
+/* double-tap workboard — Top Movers (req-git-serious-double-tap-page-strip) — v0.5.0.
    Three levels for the eye: the board (title + one summary line), the order of the cards, then
    one card as a universe of its own — its nudge first, then the rows. Cards are real objects
    (surface, edge, a state rail); the ground is a quiet warm grey so the surfaces lift. What is
@@ -11,8 +11,15 @@
 .dts a { color: var(--dts-link); text-decoration: none; }
 .dts a:hover, .dts a:focus { text-decoration: underline; text-underline-offset: 0.12em; }
 /* Level 1 — the board */
-.dts-head { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "title collection refresh" "summary summary summary"; column-gap: 1.4rem; row-gap: 0.35rem; align-items: baseline; margin-bottom: 1.1rem; }
+.dts-head { display: grid; grid-template-columns: auto 1fr auto auto; grid-template-areas: "title collection refresh window" "summary summary summary summary" "note note note note"; column-gap: 1.4rem; row-gap: 0.35rem; align-items: baseline; margin-bottom: 1.1rem; }
 .dts-title { grid-area: title; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+.dts-window-label { font-weight: 400; color: var(--dts-muted); font-size: 0.95rem; }
+/* The time-window selector — upper-right; the active window is the one that does not look like a link. */
+.dts-window { grid-area: window; justify-self: end; display: inline-flex; gap: 0.15rem; border: 1px solid var(--dts-edge); border-radius: 999px; padding: 0.1rem; background: var(--dts-surface); }
+.dts-window-opt { font-size: 0.78rem; padding: 0.15rem 0.7rem; border-radius: 999px; color: var(--dts-muted); white-space: nowrap; }
+.dts-window-opt:hover, .dts-window-opt:focus { text-decoration: none; color: var(--dts-ink); }
+.dts-window-opt.is-active { background: var(--dts-ink); color: var(--dts-surface); }
+.dts-window-note { grid-area: note; margin: 0; font-size: 0.8rem; color: var(--dts-pend); }
 .dts-collection { grid-area: collection; margin: 0; font-size: 0.8rem; color: var(--dts-muted); }
 .dts-collection time { font-variant-numeric: tabular-nums; }
 .dts-collection--stale { color: var(--dts-pend); }
