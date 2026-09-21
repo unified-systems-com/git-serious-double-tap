@@ -184,13 +184,13 @@ STATE_LABELS: dict[str, str] = {
 #: The board's rows (George, 2026-09-09, second cut): the platform on top, the products across
 #: their own row, then a board of plugins left to right by state then criticality, then support.
 PLATFORM = "unified-systems-com/tap"
-#: DECLARED (Issue# 21 - git-serious-double-tap): the products row is this list, not the org's
-#: `repository-role` property — which says samsite is a plugin and git-serious-double-tap a product.
-#: The page carries a note-to-self pointing at the issue until the row is derived.
-PRODUCTS: list[tuple[str, str]] = [
-    ("unified-systems-com/git-serious-tap", "git-serious"),
-    ("unified-systems-com/tap-plugin-samsite", "samsite"),
-]
+#: RESOLVED (Issue# 21 - git-serious-double-tap, 2026-09-21): the products row is now derived from
+#: the org's `repository-role` custom property (`role == "product"` in `repos`, itself already
+#: read off `custom_properties` in `repo_index()`) rather than a hand-declared list — see
+#: `arrange_board()`. A product's card label is its repository's own short name; there is no
+#: separate display-name property, so the label is the repo name as-is (e.g. `tap-plugin-samsite`,
+#: not a shortened "samsite"). PLATFORM stays hand-pinned above: it is a singleton with its own
+#: `repository-role` value ("platform"), not part of the products set.
 #: HARDCODED (Issue# 21 - git-serious-double-tap): each product's plugin list, copied by hand from
 #: its in-package boot record on 2026-09-09. The product card lists them as a table — a plugin in
 #: two records is a line in two tables, which is fine. git-serious-double-tap is git-serious's
@@ -736,7 +736,9 @@ def arrange_board(
     table), the plugins board, support.
 
     Movers only for the cards; the product cards always exist because their tables must. Boards
-    read left to right by state (worst first) then criticality.
+    read left to right by state (worst first) then criticality. The products row is every repo the
+    org has declared `repository-role: product` (req above `arrange_board`) — not a fixed list, so
+    a repo promoted to a product on GitHub appears here on its next collection with no code change.
     """
     repos = repos or {}
     by_name = {c.full_name: c for c in cards}
@@ -744,17 +746,20 @@ def arrange_board(
     platform = by_name.get(PLATFORM)
     if platform is not None:
         placed.add(PLATFORM)
+    product_names = sorted(
+        full_name for full_name, repo in repos.items() if repo.get("role") == "product"
+    )
     products: list[dict[str, Any]] = []
-    for full_name, label in PRODUCTS:
+    for full_name in product_names:
         card = by_name.get(full_name)
         if card is not None:
             placed.add(full_name)
-        elif full_name in repos:
+        else:
             card = _quiet_card(repos[full_name])
         products.append(
             {
                 "full_name": full_name,
-                "label": label,
+                "label": repos[full_name]["name"],
                 "card": card,
                 "plugins": plugin_table(full_name, by_name, repos),
             }
