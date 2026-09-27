@@ -9,7 +9,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-identity-core",
-          "rev": "v0.1.2"
+          "rev": "v0.1.2",
+          "commit": "63da037c77355369f91748127a74c7a17e00a7f9"
         },
         "note": "Transitive: a dependency of git_serious. Pinned at v0.1.2, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5)."
       },
@@ -19,7 +20,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/git-core-tap",
-          "rev": "v0.1.0"
+          "rev": "v0.1.0",
+          "commit": "efa983a582eaef7d16e27daa50a68aeaef7c56de"
         },
         "note": "Transitive: a dependency of git_serious. Pinned at v0.1.0, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5)."
       },
@@ -29,7 +31,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-compliance-core",
-          "rev": "v0.3.0"
+          "rev": "v0.3.0",
+          "commit": "10871675ff1c67bfac0ca61d90ee12c507fd76f4"
         },
         "note": "Transitive: a dependency of git_serious. Pinned at v0.2.2, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5)."
       },
@@ -39,7 +42,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-administrivia",
-          "rev": "v0.1.1"
+          "rev": "v0.1.1",
+          "commit": "8348716059e8b635bc8cf30608dd94d0239bf0f9"
         },
         "note": "Transitive: a dependency of git_serious. Pinned at v0.1.1, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5)."
       },
@@ -49,7 +53,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
-          "rev": "v0.10.0"
+          "rev": "v0.10.0",
+          "commit": "697e6af7ad85ae980a068e1c9882927875c93381"
         },
         "note": "Transitive: a dependency of git_serious. Pinned at v0.6.0, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5). Moved to v0.10.0 on 2026-09-11: settings into configuration (#110) and secrets nested in the machinery picture (#116), which this instance's lanes layout restates."
       },
@@ -59,7 +64,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/zizmor-tap",
-          "rev": "main"
+          "rev": "v0.1.0",
+          "commit": "eb7b709367bc7ecf2ce8692e91713a8b5371327c"
         },
         "note": "Offline GitHub Actions workflow audits. In the ci closure because this plugin's instance record seeds and fires it, so the slug must resolve here too."
       },
@@ -69,7 +75,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/git-serious-tap",
-          "rev": "575fcc468b0cd7fcba064559d297cd9630bd0074"
+          "rev": "575fcc468b0cd7fcba064559d297cd9630bd0074",
+          "commit": "575fcc468b0cd7fcba064559d297cd9630bd0074"
         },
         "note": "Declared in depends_on. Pinned at 8e390633f5db3ccd2f17a646813a3285cc30cf5a, the release current on 2026-09-09. Public repo, no credential (req-tap-plugin-arch-source-secret-5). Moved from e8af7bc to 575fcc4 on 2026-09-11: secrets pages, the BloodHound query pack, and the scene searches that carry actions_secret (git-serious-tap#78, #80, #82)."
       },
@@ -79,7 +86,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/git-serious-double-tap",
-          "rev": "03f871a3c5a84310f7a2cb461a90dc8017cb2d05"
+          "rev": "03f871a3c5a84310f7a2cb461a90dc8017cb2d05",
+          "commit": "03f871a3c5a84310f7a2cb461a90dc8017cb2d05"
         },
         "note": "Self, pinned like any app-of-apps record — the CONSUMER (plugin-ci boot-and-test, or `spawn --dev-plugins git_serious_double_tap`) substitutes the checkout under test via tap.dev_workspace (req-boot-bootstrap-ci-record-4). Booting this record unflipped runs the pinned revision."
       }

@@ -68,7 +68,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/zizmor-tap",
-          "rev": "main"
+          "rev": "v0.1.0",
+          "commit": "eb7b709367bc7ecf2ce8692e91713a8b5371327c"
         },
         "note": "Package-mode (tap_plugin.zizmor). GitHub Actions workflow audits, consumed OFFLINE: the collector reads the workflow YAML github_core already landed and runs the pinned zizmor binary over it, so it declares no required_secrets and reaches no network. Placed after github_core because it imports github_core's models to resolve workflow, job and action endpoints; the pre-boot gate checks that order. Rides `main` for now, as git_serious does — move to an immutable tag once zizmor-tap cuts its first release."
       },
