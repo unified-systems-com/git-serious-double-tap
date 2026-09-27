@@ -28,7 +28,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/tap-plugin-administrivia",
-          "rev": "v0.1.0"
+          "rev": "v0.2.0",
+          "commit": "cf205b31e83ff8774cfae59db4810a4d9bd06aea"
         },
         "note": "Package-mode (tap_plugin.administrivia). TAP admin pages + grid landing; seeded in population."
       },
