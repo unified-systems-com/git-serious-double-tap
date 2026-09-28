@@ -590,17 +590,17 @@ def test_product_card_carries_its_plugin_table_with_counts_and_red_lines() -> No
         gs_col["card"] is not None and gs_col["card"].state == "quiet"
     )  # git-serious did not move but keeps its card
     table = {row["name"]: row for row in gs_col["plugins"]}
-    assert table["tap-plugin-github-core"]["open"] == 2
+    assert table["github-core-tap"]["open"] == 2
     assert (
-        table["tap-plugin-github-core"]["passing"],
-        table["tap-plugin-github-core"]["waiting"],
-        table["tap-plugin-github-core"]["failing"],
+        table["github-core-tap"]["passing"],
+        table["github-core-tap"]["waiting"],
+        table["github-core-tap"]["failing"],
     ) == (1, 1, 0)
-    assert table["tap-plugin-identity-core"]["failing"] == 1
+    assert table["identity-core-tap"]["failing"] == 1
     assert (
         table["git-core-tap"]["on_grid"] is False and table["git-core-tap"]["open"] == 0
     )
     assert [row["name"] for row in gs_col["plugins"]][:2] == [
         "git-core-tap",
-        "tap-plugin-administrivia",
+        "administrivia-tap",
     ]  # record order

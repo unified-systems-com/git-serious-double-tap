@@ -226,7 +226,7 @@ def test_card_state_is_the_worst_row_and_cards_order_worst_first_then_name() -> 
         run_of={"run-1": f"wf-{T}-api-fuzz-nightly", "run-2": f"wf-{T}-grype-nightly", "run-3": "wf-unified-systems-com/zizmor-tap-nightly"},
     )
     cards = build_cards(env, now=NOW)
-    assert [(c.name, c.state) for c in cards] == [("tap", "failed"), ("tap-plugin-gryphon-playground", "not_observed"), ("zizmor-tap", "green")]
+    assert [(c.name, c.state) for c in cards] == [("tap", "failed"), ("gryphon-playground-tap", "not_observed"), ("zizmor-tap", "green")]
     tap = cards[0]
     assert [(r.name, r.state) for r in tap.rows] == [("grype-nightly", "failed"), ("api-fuzz-nightly", "green")]
     assert tap.headline == "tap: 1 red, 1 green"
@@ -247,4 +247,4 @@ def test_card_links_to_the_repository_page_with_the_tap_override() -> None:
     )
     urls = {c.name: c.page_url for c in build_cards(env, now=NOW)}
     assert urls["tap"] == "/double-tap/tap"
-    assert urls["tap-plugin-gryphon-playground"] == "/git-serious/repository?repo=unified-systems-com%2Ftap-plugin-gryphon-playground"
+    assert urls["gryphon-playground-tap"] == "/git-serious/repository?repo=unified-systems-com%2Fgryphon-playground-tap"
