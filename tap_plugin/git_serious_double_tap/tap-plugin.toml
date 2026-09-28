@@ -34,4 +34,4 @@ sha256 = "dfe55231a9eee9f115e42b6ecc2f6996116c85340c287c0871b90f11ccb95695"
 [[boot.records]]
 name = "ci"
 description = "RESERVED NAME (req-boot-bootstrap-ci-record): the stack this plugin's own tests run in — depends_on closure + self, offline, credential-free. The consumer flips self to editable."
-sha256 = "d422c52baf95936f4dee69ee08e6de202885a178c999cb84e145521a076528a8"
+sha256 = "baf1aec46c22c7bfe3cc13e245df66d997d00187deb88b16ef561036d5acce3b"
