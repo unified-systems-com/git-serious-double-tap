@@ -520,10 +520,10 @@ def test_board_places_platform_products_plugins_and_support() -> None:
 
     gs, sam = (
         "unified-systems-com/git-serious-tap",
-        "unified-systems-com/tap-plugin-samsite",
+        "unified-systems-com/samsite-tap",
     )
-    ghc = "unified-systems-com/tap-plugin-github-core"
-    idc = "unified-systems-com/tap-plugin-identity-core"
+    ghc = "unified-systems-com/github-core-tap"
+    idc = "unified-systems-com/identity-core-tap"
     dt = "unified-systems-com/git-serious-double-tap"
     dev = "unified-systems-com/tap-dev-hooks"
     repos = [
@@ -563,8 +563,8 @@ def test_product_card_carries_its_plugin_table_with_counts_and_red_lines() -> No
     )
 
     gs = "unified-systems-com/git-serious-tap"
-    ghc = "unified-systems-com/tap-plugin-github-core"
-    idc = "unified-systems-com/tap-plugin-identity-core"
+    ghc = "unified-systems-com/github-core-tap"
+    idc = "unified-systems-com/identity-core-tap"
     repos = [
         _repo("unified-systems-com/tap", criticality="critical", role="platform"),
         _repo(gs, role="product"),

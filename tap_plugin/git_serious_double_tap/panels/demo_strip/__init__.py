@@ -189,7 +189,7 @@ PLATFORM = "unified-systems-com/tap"
 #: The page carries a note-to-self pointing at the issue until the row is derived.
 PRODUCTS: list[tuple[str, str]] = [
     ("unified-systems-com/git-serious-tap", "git-serious"),
-    ("unified-systems-com/tap-plugin-samsite", "samsite"),
+    ("unified-systems-com/samsite-tap", "samsite"),
 ]
 #: HARDCODED (Issue# 21 - git-serious-double-tap): each product's plugin list, copied by hand from
 #: its in-package boot record on 2026-09-09. The product card lists them as a table — a plugin in
@@ -198,22 +198,22 @@ PRODUCTS: list[tuple[str, str]] = [
 PRODUCT_PLUGINS: dict[str, list[str]] = {
     "unified-systems-com/git-serious-tap": [
         "unified-systems-com/git-core-tap",
-        "unified-systems-com/tap-plugin-administrivia",
-        "unified-systems-com/tap-plugin-identity-core",
-        "unified-systems-com/tap-plugin-github-core",
+        "unified-systems-com/administrivia-tap",
+        "unified-systems-com/identity-core-tap",
+        "unified-systems-com/github-core-tap",
         "unified-systems-com/git-serious-double-tap",
     ],
-    "unified-systems-com/tap-plugin-samsite": [
-        "unified-systems-com/tap-plugin-administrivia",
-        "unified-systems-com/tap-plugin-computing-core",
-        "unified-systems-com/tap-plugin-roscale",
-        "unified-systems-com/tap-plugin-identity-core",
-        "unified-systems-com/tap-plugin-aws-core",
-        "unified-systems-com/tap-plugin-sigstore-core",
-        "unified-systems-com/tap-plugin-github-core",
-        "unified-systems-com/tap-plugin-compliance-core",
-        "unified-systems-com/tap-plugin-fedramp-20x-ksi",
-        "unified-systems-com/tap-plugin-grid-fixtures",
+    "unified-systems-com/samsite-tap": [
+        "unified-systems-com/administrivia-tap",
+        "unified-systems-com/computing-core-tap",
+        "unified-systems-com/roscale-tap",
+        "unified-systems-com/identity-core-tap",
+        "unified-systems-com/aws-core-tap",
+        "unified-systems-com/sigstore-core-tap",
+        "unified-systems-com/github-core-tap",
+        "unified-systems-com/compliance-core-tap",
+        "unified-systems-com/fedramp-20x-ksi-tap",
+        "unified-systems-com/grid-fixtures-tap",
     ],
 }
 BOARD_ISSUE = 21

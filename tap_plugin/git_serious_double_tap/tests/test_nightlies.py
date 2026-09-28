@@ -96,7 +96,7 @@ def _env(
     }
 
 
-R = "unified-systems-com/tap-plugin-gryphon-playground"
+R = "unified-systems-com/gryphon-playground-tap"
 T = "unified-systems-com/tap"
 
 

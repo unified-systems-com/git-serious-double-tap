@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "python",
+  "include-component-in-tag": false,
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
+  "packages": {
+    ".": {
+      "package-name": "git-serious-double-tap-tap",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "tap_plugin/git_serious_double_tap/tap-plugin.toml"
+        },
+        {
+          "type": "json",
+          "path": "tap_plugin/git_serious_double_tap/boot/ci.boot.json",
+          "jsonpath": "$.install.plugins[?(@.slug=='git_serious_double_tap')].source.rev"
+        }
+      ],
+      "initial-version": "0.1.0"
+    }
+  }
+}
