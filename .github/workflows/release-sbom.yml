@@ -1,0 +1,45 @@
+# Release SBOM + attestations for git-serious-double-tap.
+#
+# A THIN CALLER, the same shape as this repository's `ci.yml` and `nightly.yml`. On every
+# release tag push the reusable workflow in core builds the wheel AT THE TAG (the version
+# derives from the tag via hatch-vcs, so the full-history checkout is load-bearing),
+# derives this plugin's SBOM from that built wheel rather than from the source tree
+# (CycloneDX primary + SPDX, fail-closed on schema conformance, minimum-elements and an
+# identity canary that tag, wheel and SBOM agree on dist name and exact version), and
+# attests with the WHEEL as subject: SLSA build provenance plus both SBOM predicates,
+# signed into GitHub's attestation store. A consumer verifies with:
+#
+#   gh attestation verify <wheel> --owner unified-systems-com
+#   gh attestation verify <wheel> --owner unified-systems-com \
+#     --predicate-type https://cyclonedx.org/bom
+#
+# WHY THIS EXISTS BEFORE THIS REPOSITORY HAS EVER RELEASED. Without this file a release
+# still succeeds and still publishes a wheel — it just publishes one nobody downstream can
+# verify. That failure is invisible until the first release, and the first release is the
+# run nobody watches, precisely because it succeeds. Eleven of the fleet's twenty-four
+# repositories were in that state on 2026-09-29, all of them bootstrapped correctly against
+# a convention that never mentioned this lane (`tap#892`).
+#
+# `workflow_dispatch` exists for a backfill run at an existing tag ref.
+name: release-sbom
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  release-sbom:
+    # Required on this job: GitHub validates every job of the called workflow against this
+    # grant BEFORE creating any of them, so a scope missing here fails the whole run at
+    # startup with zero jobs and no log. `id-token` and `attestations` are what the signing
+    # step needs; `contents` stays read.
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    uses: unified-systems-com/tap/.github/workflows/plugin-release-sbom.yml@baf481c0572c0210c8a89e9c86e552616c7e886c
+    with:
+      plugin_slug: git_serious_double_tap
