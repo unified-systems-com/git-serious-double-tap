@@ -1,0 +1,25 @@
+# Product health (tap#888, child of the tap#887 epic).
+#
+# A THIN CALLER, the same shape nightly.yml carries. Boots this product's own real,
+# committed profile (tap_plugin/git_serious_double_tap/boot/git_serious_double_tap.boot.json)
+# against tap core's currently-published image and checks it comes up healthy — the
+# composition a real deployment actually runs, not just this plugin's own declared
+# dependency closure (which the ordinary `ci` record / nightly already proves).
+#
+# Only what cannot move lives here: the `schedule` trigger, the cron MINUTE staggered
+# per repo so the org's hourly checks do not burst, the slug, and the pin.
+#
+# Hourly, not daily like nightly.yml: v1 is boot-only (no baseline diffing yet, George's
+# ruling 2026-09-29), so a red is cheap to catch fast and cheap to re-check.
+name: product-health
+on:
+  schedule:
+    - cron: "41 * * * *"   # staggered per repo so the org's hourly checks do not burst
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  product-health:
+    uses: unified-systems-com/tap/.github/workflows/product-health.yml@a17a554230d2b1eb6e62b2e20650f36b42521658
+    with:
+      product_slug: git_serious_double_tap
