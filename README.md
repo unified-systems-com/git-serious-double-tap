@@ -15,7 +15,7 @@ of our own CI/CD system.
 
 - **git_serious** (`git-serious-tap`): the product — landing, org, workflow and gate pages, the
   panels and searches this plugin mounts, and the boot record this instance runs.
-- **github_core** (`tap-plugin-github-core`): the GitHub vocabulary and collector.
+- **github_core** (`github-core-tap`): the GitHub vocabulary and collector.
 - The rule: anything a second git-serious instance would also want is built there, not here.
 
 ## Scope

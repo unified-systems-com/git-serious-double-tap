@@ -20,14 +20,14 @@
           "url": "https://github.com/unified-systems-com/git-core-tap",
           "rev": "v0.1.0"
         },
-        "note": "Package-mode (tap_plugin.git_core). The neutral Git vocabulary github_core emits since v0.6.0 (github-core#76). First in the list: github_core depends on it and the pre-boot gate checks order. Pinned at the immutable tag v0.1.0 (released 2026-09-08).1.0; then the tag."
+        "note": "Package-mode (tap_plugin.git_core). The neutral Git vocabulary github_core emits since v0.6.0 (github-core-tap#76). First in the list: github_core depends on it and the pre-boot gate checks order. Pinned at the immutable tag v0.1.0 (released 2026-09-08).1.0; then the tag."
       },
       {
         "slug": "administrivia",
         "enabled": true,
         "source": {
           "type": "git",
-          "url": "https://github.com/unified-systems-com/tap-plugin-administrivia",
+          "url": "https://github.com/unified-systems-com/administrivia-tap",
           "rev": "v0.1.0"
         },
         "note": "Package-mode (tap_plugin.administrivia). TAP admin pages + grid landing; seeded in population."
@@ -37,7 +37,7 @@
         "enabled": true,
         "source": {
           "type": "git",
-          "url": "https://github.com/unified-systems-com/tap-plugin-identity-core",
+          "url": "https://github.com/unified-systems-com/identity-core-tap",
           "rev": "v0.1.1"
         },
         "note": "Package-mode (tap_plugin.identity_core). Install-only substrate: the oidc_issuer convergence node github_core mints. No GRIFT seed."
@@ -47,20 +47,20 @@
         "enabled": true,
         "source": {
           "type": "git",
-          "url": "https://github.com/unified-systems-com/tap-plugin-compliance-core",
+          "url": "https://github.com/unified-systems-com/compliance-core-tap",
           "rev": "v0.3.0"
         },
-        "note": "Package-mode (tap_plugin.compliance_core). Install-only substrate: github_core v0.8.0 declares `tap-plugin-compliance-core>=0.3.0,<0.4` and the pre-boot install fails closed without it. Ordered BEFORE github_core, which depends on it."
+        "note": "Package-mode (tap_plugin.compliance_core). Install-only substrate: github_core v0.8.0 declares `compliance-core-tap>=0.3.0,<0.4` and the pre-boot install fails closed without it. Ordered BEFORE github_core, which depends on it."
       },
       {
         "slug": "github_core",
         "enabled": true,
         "source": {
           "type": "git",
-          "url": "https://github.com/unified-systems-com/tap-plugin-github-core",
+          "url": "https://github.com/unified-systems-com/github-core-tap",
           "rev": "v0.10.0"
         },
-        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary git_serious and zizmor both read. Pinned at v0.8.0: the release that ships the workflow-page bundle this record seeds and keys it on workflow_id (tap-plugin-github-core#102); git_serious declares `tap-plugin-github-core>=0.8.0,<0.9` from git-serious-tap#77 on. A pin below what git_serious declares cannot install at all (that was the v0.6.0 lesson, #28). Moved to v0.10.0 on 2026-09-11: settings into configuration (#110) and secrets nested in the machinery picture (#116), which this instance's lanes layout restates."
+        "note": "Package-mode (tap_plugin.github_core). The GitHub vocabulary git_serious and zizmor both read. Pinned at v0.8.0: the release that ships the workflow-page bundle this record seeds and keys it on workflow_id (github-core-tap#102); git_serious declares `github-core-tap>=0.8.0,<0.9` from git-serious-tap#77 on. A pin below what git_serious declares cannot install at all (that was the v0.6.0 lesson, #28). Moved to v0.10.0 on 2026-09-11: settings into configuration (#110) and secrets nested in the machinery picture (#116), which this instance's lanes layout restates."
       },
       {
         "slug": "zizmor",

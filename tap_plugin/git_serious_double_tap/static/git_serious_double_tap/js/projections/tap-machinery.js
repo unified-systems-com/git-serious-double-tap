@@ -48,7 +48,7 @@
  * Nothing here names tap. The lanes are derived from the collected workflow
  * configuration, so the same module reads any repository; only the page pins which one.
  *
- * KNOWN DUPLICATE (tap-plugin-github-core#91): the base nesting configuration below —
+ * KNOWN DUPLICATE (github-core-tap#91): the base nesting configuration below —
  * type and edge names, base sizes, paddings, inner layouts, relationships — restates what
  * machinery.js hands to `projectNested`. It must match machinery.js exactly until that
  * module exports it; every edit there means putting eyes on this block.
@@ -63,7 +63,7 @@ import {settleStacks} from "/static/tap_viz/js/runtime/stack.js";
 
 const GRYPHON_URL = "/api/v1/gryphon/execute";
 
-// ---- Base configuration, restated (tap-plugin-github-core#91) ----------------------------
+// ---- Base configuration, restated (github-core-tap#91) ----------------------------
 const T = {
     platform: "github_core__github_platform",
     account: "github_core__github_account",
@@ -194,7 +194,7 @@ export async function execute(context) {
     if (!laned) return {warnings};
 
     // Re-run the nesting with the lane level added. Same base numbers as machinery.js
-    // (tap-plugin-github-core#91), repository → lane → workflow instead of repository → workflow.
+    // (github-core-tap#91), repository → lane → workflow instead of repository → workflow.
     const chrome = applyStandardChrome(cy, {
         leafTypes: [T.job, T.ref, T.ruleset, T.environment, T.app, T.runner, T.issuer, T.workflow, T.secret],
         leafMaxWidth: 170,
@@ -217,7 +217,7 @@ export async function execute(context) {
             {name: "ruleset-protects-repository", gryphon: `(parent:${T.repository})<-[:${E.protects}]-(child:${T.ruleset})`},
             {name: "repository-has-placeholder", gryphon: `(parent:${T.repository})-[:${SYN.hasPlaceholder}]->(child:${T.placeholder})`},
             {name: "workflow-defines-job", gryphon: `(parent:${T.workflow})-[:${E.definesJob}]->(child:${T.job})`},
-            // Restated from machinery.js (github-core#116 / #91): credentials nest in their holder.
+            // Restated from machinery.js (github-core-tap#116 / #91): credentials nest in their holder.
             {name: "account-defines-secret", gryphon: `(parent:${T.account})-[:${E.definesSecret}]->(child:${T.secret})`},
             {name: "repository-defines-secret", gryphon: `(parent:${T.repository})-[:${E.definesSecret}]->(child:${T.secret})`},
             {name: "environment-defines-secret", gryphon: `(parent:${T.environment})-[:${E.definesSecret}]->(child:${T.secret})`},

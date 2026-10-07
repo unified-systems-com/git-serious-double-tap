@@ -283,10 +283,10 @@ observable, waiting, green) and then criticality, wrapping. Support and fixture 
 sits. A product → plugin mapping was built and dropped the same evening: the columns it made were
 not space-efficient, and deriving it would have meant an ad-hoc collector addition.
 
-The products row is a **declared list**, not the org's `repository-role` property (which says
-samsite is a plugin and git-serious-double-tap a product). The page carries a note-to-self pointing
-at Issue# 21 - git-serious-double-tap until the row is derived. The collection line shows the
-viewer's local time.
+The products row is a **declared list**, not the org's `repository-role` property (which now agrees
+with it — samsite-tap and git-serious-double-tap are both `product` as of 2026-09-29 — but is still
+not what the row is derived from). The page carries a note-to-self pointing at Issue# 21 -
+git-serious-double-tap until the row is derived. The collection line shows the viewer's local time.
 
 Nudge precedence is by what the reader must do, worst first: failed > not observable > pending >
 green > quiet. *Green* deliberately says *review it*, never *merge*: passing checks do not
@@ -309,7 +309,7 @@ folds them in pure functions (`build_cards`, `dedupe_checks`, `classify_check`, 
 `static/git_serious_double_tap/css/demo_strip.css`. No github_core or git_core Python is imported —
 `depends_on` stays empty; the queries name those plugins' node types, a data dependency the boot
 record already orders. Data contract: github_core ≥ the release that ships `pull_request`
-(github-core#82 / PR# 83) and `custom_properties` (PR# 81).
+(github-core-tap#82 / PR# 83) and `custom_properties` (PR# 81).
 
 #### Acceptance Criteria
 
