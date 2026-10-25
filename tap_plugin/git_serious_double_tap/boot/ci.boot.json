@@ -69,8 +69,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/git-serious-tap",
-          "rev": "575fcc468b0cd7fcba064559d297cd9630bd0074",
-          "commit": "575fcc468b0cd7fcba064559d297cd9630bd0074"
+          "rev": "v0.1.1",
+          "commit": "a47ca0de5910cf7ac23c682b11a78ee4ceab2286"
         }
       },
       {
