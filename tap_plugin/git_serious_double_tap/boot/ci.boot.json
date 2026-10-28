@@ -9,8 +9,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/identity-core-tap",
-          "rev": "v0.1.2",
-          "commit": "63da037c77355369f91748127a74c7a17e00a7f9"
+          "rev": "v0.1.6",
+          "commit": "11f087954ff5d06792abc4a3994d7eae77bbcb5b"
         }
       },
       {
@@ -19,8 +19,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/git-core-tap",
-          "rev": "v0.1.0",
-          "commit": "efa983a582eaef7d16e27daa50a68aeaef7c56de"
+          "rev": "v0.1.1",
+          "commit": "9e941010f155f1223340ff404d7cbd14cd1db1e0"
         }
       },
       {
@@ -29,8 +29,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/compliance-core-tap",
-          "rev": "v0.3.0",
-          "commit": "10871675ff1c67bfac0ca61d90ee12c507fd76f4"
+          "rev": "v0.8.10",
+          "commit": "1661fa3accdf68d3d911b70df14e7d9ce4e542a7"
         }
       },
       {
@@ -39,8 +39,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/administrivia-tap",
-          "rev": "v0.1.1",
-          "commit": "8348716059e8b635bc8cf30608dd94d0239bf0f9"
+          "rev": "v0.2.2",
+          "commit": "7656f2912f8355a5129ef299ae5e99d8b61821ba"
         }
       },
       {
@@ -49,8 +49,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/github-core-tap",
-          "rev": "v0.11.0",
-          "commit": "2c7f95e3e0db4bc98ed7cdd940e0caca0cd357c7"
+          "rev": "v0.14.0",
+          "commit": "e94371a9c3401175b962c1e9b397979b0baeab90"
         }
       },
       {
