@@ -63,8 +63,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/zizmor-tap",
-          "rev": "v0.1.0",
-          "commit": "eb7b709367bc7ecf2ce8692e91713a8b5371327c"
+          "rev": "v0.1.1",
+          "commit": "b0706daf9b3fcfae9d47281f5419f697c8d38bb6"
         }
       },
       {
