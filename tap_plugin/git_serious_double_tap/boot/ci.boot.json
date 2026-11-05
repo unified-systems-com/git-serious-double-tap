@@ -44,6 +44,26 @@
         }
       },
       {
+        "slug": "computing_core",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/computing-core-tap",
+          "rev": "v0.9.1",
+          "commit": "43f1f09bf5ce8a1b51290d9cdb1f9cab8ea0e166"
+        }
+      },
+      {
+        "slug": "sigstore_core",
+        "enabled": true,
+        "source": {
+          "type": "git",
+          "url": "https://github.com/unified-systems-com/sigstore-core-tap",
+          "rev": "v0.5.2",
+          "commit": "d86c4a0b9570c608f75e98a5c657c06e8890ffec"
+        }
+      },
+      {
         "slug": "github_core",
         "enabled": true,
         "source": {
@@ -69,8 +89,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/git-serious-tap",
-          "rev": "v0.1.1",
-          "commit": "a47ca0de5910cf7ac23c682b11a78ee4ceab2286"
+          "rev": "v0.1.2",
+          "commit": "e1926b37a024fdff8d1e9f8a16917218c737069b"
         }
       },
       {
