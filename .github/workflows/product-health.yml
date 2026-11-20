@@ -20,6 +20,6 @@ permissions:
   contents: read
 jobs:
   product-health:
-    uses: unified-systems-com/tap/.github/workflows/product-health.yml@a17a554230d2b1eb6e62b2e20650f36b42521658
+    uses: unified-systems-com/tap/.github/workflows/product-health.yml@c3b64dffca512afa852f588560f774e2b357b655
     with:
       product_slug: git_serious_double_tap
