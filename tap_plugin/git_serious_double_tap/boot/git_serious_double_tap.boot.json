@@ -18,8 +18,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/git-core-tap",
-          "rev": "v0.1.1",
-          "commit": "9e941010f155f1223340ff404d7cbd14cd1db1e0"
+          "rev": "v0.1.2",
+          "commit": "141b268de216402a643cbe1141642e697dd98bec"
         }
       },
       {
@@ -38,8 +38,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/identity-core-tap",
-          "rev": "v0.1.6",
-          "commit": "11f087954ff5d06792abc4a3994d7eae77bbcb5b"
+          "rev": "v0.1.7",
+          "commit": "853ac4eeb7efebdd85e4baa2bfbde850c842d477"
         }
       },
       {
@@ -48,8 +48,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/compliance-core-tap",
-          "rev": "v0.8.11",
-          "commit": "54e450e99c9b483aeb5ad3d7f646205b0843dbe2"
+          "rev": "v0.8.13",
+          "commit": "4169092e43aeb60ab23919688890318b584ea1a0"
         }
       },
       {
@@ -58,8 +58,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/computing-core-tap",
-          "rev": "v0.9.1",
-          "commit": "43f1f09bf5ce8a1b51290d9cdb1f9cab8ea0e166"
+          "rev": "v0.10.8",
+          "commit": "f244539e7626cb8996238b32a53f0010eafe09d0"
         }
       },
       {
@@ -68,8 +68,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/sigstore-core-tap",
-          "rev": "v0.5.2",
-          "commit": "d86c4a0b9570c608f75e98a5c657c06e8890ffec"
+          "rev": "v0.5.3",
+          "commit": "a650c1b56f68b4bd8ebaae4bef248a4cf3395dd9"
         }
       },
       {
@@ -78,8 +78,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/github-core-tap",
-          "rev": "v0.14.0",
-          "commit": "e94371a9c3401175b962c1e9b397979b0baeab90"
+          "rev": "v0.14.1",
+          "commit": "f4ac200fcc2a2b4d51ed3900dd22184598f05937"
         }
       },
       {
@@ -88,8 +88,8 @@
         "source": {
           "type": "git",
           "url": "https://github.com/unified-systems-com/zizmor-tap",
-          "rev": "v0.1.1",
-          "commit": "b0706daf9b3fcfae9d47281f5419f697c8d38bb6"
+          "rev": "v0.2.0",
+          "commit": "e5b9581117cdd85aea540d8846596c3a04ebd002"
         }
       },
       {
