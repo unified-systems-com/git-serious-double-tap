@@ -1,6 +1,6 @@
 manifest_version = "0"
 plugin_version = "0.1.1" # x-release-please-version
-requires_tap = ">=0.3.1"
+requires_tap = ">=0.4.3"
 slug = "git_serious_double_tap"
 name = "git-serious double-tap"
 description = "The unified-systems-com instance configuration for git-serious: the pages and panels specific to observing the organization that builds TAP. A double-tap plugin — one that introspects the TAP system itself."
@@ -29,9 +29,9 @@ tap_repository = "grift/tap-repository.grift.json"
 [[boot.records]]
 name = "git_serious_double_tap"
 description = "unified-systems-com instance of git-serious: the product's closure + the double-tap plugin, seeded in order, collector fired against the org, landing page pinned to /double-tap (web.landing_entity_id + web.landing_slug)."
-sha256 = "9e461c08cf3e8ebfe1d3eeffecd978e99e01ec82a6598c8b1e9c190f4522155e"
+sha256 = "19b20d26ed6293ce841a9fcd1b25477acdeb64bf5a7a1c59d94abaffbb7571d7"
 
 [[boot.records]]
 name = "ci"
 description = "RESERVED NAME (req-boot-bootstrap-ci-record): the stack this plugin's own tests run in — depends_on closure + self, offline, credential-free. The consumer flips self to editable."
-sha256 = "d4d7c9543304f0d623fa5e6bf7d55e6ce21457dd37ea281df2e6bd98c5fa3b3d"
+sha256 = "1007902adc7477a11ba7aaa560ba9e914f7b729497f57d68552dc23b5cecb81d"
