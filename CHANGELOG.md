@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/unified-systems-com/git-serious-double-tap/compare/v0.1.3...v0.1.4) (2026-11-25)
+
+
+### Bug Fixes
+
+* **boot:** pin format "1" releases in the in-package boot records ([1fd375c](https://github.com/unified-systems-com/git-serious-double-tap/commit/1fd375c9c33ade58aaecabba61f6d631728b9eff))
+* **boot:** pin format "1" releases in the in-package boot records ([8219098](https://github.com/unified-systems-com/git-serious-double-tap/commit/8219098a9b13625ed72afbc5b855161b549c13fc))
+
 ## [0.1.3](https://github.com/unified-systems-com/git-serious-double-tap/compare/v0.1.2...v0.1.3) (2026-11-25)
 
 
